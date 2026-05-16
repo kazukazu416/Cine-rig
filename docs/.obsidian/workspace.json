@@ -55,12 +55,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "CineRig/Tasks.md",
+                "file": "CineRig/Requirements.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Tasks"
+              "title": "Requirements"
             }
           },
           {
@@ -179,7 +179,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "CineRig/Tasks.md",
+                "file": "CineRig/Requirements.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -189,7 +189,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Tasksへのバックリンク"
+              "title": "Requirementsへのバックリンク"
             }
           },
           {
@@ -283,15 +283,15 @@
   },
   "active": "a737e98a908ce9f4",
   "lastOpenFiles": [
-    "CineRig/Requirements.md",
     "CineRig/Logs.md",
     "CineRig/Equipment.md",
     "CineRig/Architecture.md",
+    "CineRig/Requirements.md",
+    "CineRig/Tasks.md",
     "Base.md",
     "Myself/ようこそ.md",
     "Myself",
     "CineRig/UI.md",
-    "CineRig/Tasks.md",
     "無題のフォルダ",
     "無題のフォルダ/無題のファイル.md",
     "無題のファイル.canvas",

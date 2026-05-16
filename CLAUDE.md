@@ -37,7 +37,7 @@ interface Port {
 
 interface Connection {
   from: { equipmentId: string; portId: string };
-  to:   { equipmentId: string; portId: string };
+  to: { equipmentId: string; portId: string };
   cableType: string;
 }
 
@@ -54,6 +54,15 @@ interface Setup {
 ## Documentation
 
 Design decisions and architecture notes live in `docs/CineRig/` (Obsidian vault). Update these files when making architectural changes.
+
 - `Requirements.md` — scope and data model
 - `Architecture.md` — pipeline flow
 - `Tasks.md` — active task list
+
+## 運用ルール
+
+- 作業終了時、必ず docs/CineRig/Logs.md に
+  今日の日付と作業内容を追記すること
+- コミットメッセージは日本語で簡潔に
+- 不明点があれば docs/CineRig/Requirements.md を確認
+- 大きな設計変更は docs/CineRig/Decisions.md に記録
