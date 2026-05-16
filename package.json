@@ -1,0 +1,11 @@
+{
+  "name": "cine-rig",
+  "version": "0.1.0",
+  "scripts": {
+    "demo": "tsx src/demo.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

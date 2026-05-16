@@ -1,0 +1,23 @@
+{
+  "id": "conv-1778917029315-f454ujgxp",
+  "providerId": "claude",
+  "title": "/plugin marketplace add agenticnotetaking/arsconte...",
+  "titleGenerationStatus": "failed",
+  "createdAt": 1778917029321,
+  "updatedAt": 1778917031895,
+  "lastResponseAt": 1778917031397,
+  "sessionId": "e8ead5b4-3942-4ef1-ab55-9d047658087c",
+  "providerState": {
+    "providerSessionId": "e8ead5b4-3942-4ef1-ab55-9d047658087c"
+  },
+  "currentNote": "Base.md",
+  "usage": {
+    "model": "opus",
+    "inputTokens": 0,
+    "cacheCreationInputTokens": 0,
+    "cacheReadInputTokens": 0,
+    "contextWindow": 200000,
+    "contextTokens": 0,
+    "percentage": 0
+  }
+}
