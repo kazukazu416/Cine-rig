@@ -1,3 +1,21 @@
+## 2026-05-17 (5)
+
+### Phase 1: データモデル+ロジック完了
+
+- `src/types.ts` に Scene 構造を追加（既存型は維持）
+  - `SceneMonitorRole`, `CameraInstance`, `WirelessSetInstance`, `MonitorInstance`, `RecorderInstance`, `Scene`
+- `src/generateSetup.ts` を新ロジックに書き換え
+  - `SignalPath` クラス（ループスルーチェーン追跡、最大4ホップ）
+  - `generateFromScene(scene: Scene): Setup` をメインエクスポートとして追加
+  - 5ステップ自動配線ロジック実装（オンボード→ワイヤレス→有線→レコーダー）
+  - `generateSetup(CameraInput[])` は App.tsx 互換のアダプターとして維持
+- `src/demo.ts` を Scene ベースに更新
+  - FX6 + 4モニター（オンボード/フォーカス/ディレクター/クライアント）+ ワイヤレス1セット
+  - 期待どおりの配線：SDI→オンボード→ループスルー→TX / RX→monitor3→ループ→monitor4 / HDMI→フォーカス
+- `npm run demo` 正常動作・`npm run build` エラーなし
+
+---
+
 ## 2026-05-17 (4)
 
 - Design.md 更新：カラーシステム確定

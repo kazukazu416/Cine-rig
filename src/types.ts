@@ -84,3 +84,41 @@ export interface CameraInput {
   monitors: MonitorInput[];
   wireless: boolean;
 }
+
+// Scene-based data model (Phase 1+)
+export type SceneMonitorRole = "onboard" | "focus" | "frontline" | "director" | "client" | "other";
+
+export interface CameraInstance {
+  id: string;
+  model: string;
+  label?: string;
+}
+
+export interface WirelessSetInstance {
+  id: string;
+  txModel?: string;
+  rxModel?: string;
+  sourceId: string;
+  destinationIds: string[];
+}
+
+export interface MonitorInstance {
+  id: string;
+  model: string;
+  role: SceneMonitorRole;
+  cameraId?: string;
+  customLabel?: string;
+}
+
+export interface RecorderInstance {
+  id: string;
+  model: string;
+  label?: string;
+}
+
+export interface Scene {
+  cameras: CameraInstance[];
+  wirelessSets: WirelessSetInstance[];
+  monitors: MonitorInstance[];
+  recorders: RecorderInstance[];
+}
