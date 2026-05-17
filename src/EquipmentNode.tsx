@@ -6,6 +6,7 @@ const TYPE_COLOR: Record<string, string> = {
   monitor:     "#8e8e93",
   wireless_tx: "#ff9f0a",
   wireless_rx: "#ff9f0a",
+  recorder:    "#bf5af2",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -13,6 +14,7 @@ const TYPE_LABEL: Record<string, string> = {
   monitor:     "Monitor",
   wireless_tx: "Wireless TX",
   wireless_rx: "Wireless RX",
+  recorder:    "Recorder",
 };
 
 const PORT_COLOR: Record<string, string> = {

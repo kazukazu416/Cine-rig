@@ -7,7 +7,7 @@ export interface Port {
 export interface Equipment {
   id: string;
   name: string;
-  type: "camera" | "monitor" | "wireless_tx" | "wireless_rx";
+  type: "camera" | "monitor" | "wireless_tx" | "wireless_rx" | "recorder";
   ports: Port[];
 }
 
@@ -22,7 +22,13 @@ export interface Setup {
   connections: Connection[];
 }
 
-export type CameraModel = "FX6" | "FX3" | "FX9";
+export type CameraModel =
+  | "FX6" | "FX3" | "FX9"
+  | "BURANO" | "VENICE2" | "A7SIII" | "A7IV"
+  | "ALEXA_MINI_LF"
+  | "V_RAPTOR"
+  | "C70" | "C300_MKIII"
+  | "URSA_MINI_PRO_12K";
 
 export type CableType = "SDI" | "HDMI" | "BNC" | "その他";
 export const CABLE_TYPES: CableType[] = ["SDI", "HDMI", "BNC", "その他"];
@@ -34,11 +40,21 @@ export const CABLE_COLORS: Record<string, string> = {
 };
 
 export type MonitorModelId =
-  | "smallhd_cine7"
-  | "atomos_shogun7"
+  // SmallHD
+  | "smallhd_cine7"   | "smallhd_cine5"
+  | "smallhd_ultra7"  | "smallhd_ultra5" | "smallhd_ultra10"
+  | "smallhd_indie7"  | "smallhd_indie5"
+  | "smallhd_702touch"| "smallhd_702b"
+  // Atomos
+  | "atomos_shogun7"  | "atomos_shogun_ultra"
+  | "atomos_ninja_v"  | "atomos_ninja_vplus" | "atomos_ninja_ultra"
   | "atomos_sumo19"
-  | "fsi_dm240w"
-  | "smallhd_702b";
+  // Sony
+  | "sony_pvm_a170"   | "sony_pvm_a250"
+  | "sony_lmd_a170"   | "sony_lmd_a220" | "sony_lmd_a240"
+  | "sony_bvm_hx310"
+  // FSI
+  | "fsi_dm240w";
 
 export type MonitorRole = "focus" | "onboard" | "director" | "client" | "custom";
 

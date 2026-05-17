@@ -1,9 +1,15 @@
 import { type ReactNode } from "react";
 import type { CameraInput, CameraModel, MonitorInput, MonitorModelId, MonitorRole } from "./types";
 import { ROLE_LABELS } from "./types";
-import { DB, MONITOR_MODELS } from "./equipmentDB";
+import { DB, MONITOR_MODELS, type CameraModelId } from "./equipmentDB";
 
-const CAMERA_MODELS: CameraModel[] = ["FX6", "FX3", "FX9"];
+const CAMERA_MODELS: CameraModel[] = [
+  "FX6", "FX3", "FX9",
+  "BURANO", "VENICE2", "A7SIII", "A7IV",
+  "ALEXA_MINI_LF", "V_RAPTOR",
+  "C70", "C300_MKIII",
+  "URSA_MINI_PRO_12K",
+];
 const ROLES: MonitorRole[] = ["focus", "onboard", "director", "client", "custom"];
 
 // DaVinci Resolve Fusion palette
@@ -230,7 +236,11 @@ function CameraCard({
             value={input.model}
             onChange={v => onChange("model", v as CameraModel)}
           >
-            {CAMERA_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
+            {CAMERA_MODELS.map(m => (
+                <option key={m} value={m}>
+                  {DB[m.toLowerCase() as CameraModelId]?.name ?? m}
+                </option>
+              ))}
           </Select>
         </Row>
 

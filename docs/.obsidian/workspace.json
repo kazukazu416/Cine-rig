@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "CineRig/Tasks.md",
+                "file": "CineRig/Logs.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Tasks"
+              "title": "Logs"
             }
           },
           {
@@ -278,13 +278,13 @@
   },
   "active": "64b465a0eb078158",
   "lastOpenFiles": [
+    "CineRig/Requirements.md",
+    "CineRig/Logs.md",
+    "CineRig/Tasks.md",
     "CineRig/UI.md",
     "CineRig/Architecture.md",
     "CineRig/Design.md",
     "CineRig/Equipment.md",
-    "CineRig/Logs.md",
-    "CineRig/Requirements.md",
-    "CineRig/Tasks.md",
     "Base.md",
     "Myself/ようこそ.md",
     "Myself",
