@@ -22,10 +22,11 @@ const PORT_COLOR: Record<string, string> = {
   HDMI: "#f59e0b",
 };
 
-const NODE_W    = 208;
-const HEADER_H  = 50;
-const PORT_ROW_H = 26;
-const V_PAD     = 8;
+// Compact dimensions — Design.md: 6px radius, no shadow, high density
+const NODE_W     = 190;
+const HEADER_H   = 44;
+const PORT_ROW_H = 23;
+const V_PAD      = 6;
 
 function handleTopPct(rowIdx: number, nodeH: number): string {
   const y = HEADER_H + V_PAD + rowIdx * PORT_ROW_H + PORT_ROW_H / 2;
@@ -52,20 +53,19 @@ export function EquipmentNode({ data }: Props) {
       width: NODE_W,
       height: nodeH,
       background: "#FFFFFF",
-      border: "1px solid rgba(0,0,0,0.09)",
-      borderRadius: 8,
+      border: "1px solid rgba(0,0,0,0.10)",
+      borderRadius: 6,
       color: "#1d1d1f",
       fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
       overflow: "visible",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
     }}>
-      {/* Type accent bar */}
+      {/* Category accent bar — top only, 3px */}
       <div style={{
         position: "absolute",
         top: 0, left: 0, right: 0,
         height: 3,
         background: color,
-        borderRadius: "7px 7px 0 0",
+        borderRadius: "5px 5px 0 0",
         pointerEvents: "none",
       }} />
 
@@ -74,27 +74,27 @@ export function EquipmentNode({ data }: Props) {
         position: "absolute",
         top: 0, left: 0, right: 0,
         height: HEADER_H,
-        padding: "12px 12px 0",
+        padding: "11px 11px 0",
         borderBottom: "1px solid rgba(0,0,0,0.06)",
       }}>
         <div style={{
           fontWeight: 600,
-          fontSize: 13,
+          fontSize: 12,
           lineHeight: 1.25,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
           color: "#1d1d1f",
-          letterSpacing: -0.2,
+          letterSpacing: -0.1,
         }}>
           {equipment.name}
         </div>
         <div style={{
-          fontSize: 10,
+          fontSize: 9,
           color,
           marginTop: 2,
           fontWeight: 600,
-          letterSpacing: 0.3,
+          letterSpacing: 0.4,
           textTransform: "uppercase",
         }}>
           {typeLabel}
@@ -112,17 +112,17 @@ export function EquipmentNode({ data }: Props) {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 16px",
+              padding: "0 14px",
             }}>
               <span style={{
-                fontSize: 10, fontWeight: 500, letterSpacing: 0.3,
+                fontSize: 9, fontWeight: 500, letterSpacing: 0.3,
                 color: inp ? (PORT_COLOR[inp.type] ?? "#6e6e73") : "transparent",
                 userSelect: "none",
               }}>
                 {inp ? `${inp.type} IN` : ""}
               </span>
               <span style={{
-                fontSize: 10, fontWeight: 500, letterSpacing: 0.3,
+                fontSize: 9, fontWeight: 500, letterSpacing: 0.3,
                 color: out ? (PORT_COLOR[out.type] ?? "#6e6e73") : "transparent",
                 userSelect: "none",
               }}>
@@ -133,6 +133,7 @@ export function EquipmentNode({ data }: Props) {
         })}
       </div>
 
+      {/* Input handles */}
       {inputPorts.map((port, i) => (
         <Handle
           key={port.id}
@@ -141,7 +142,7 @@ export function EquipmentNode({ data }: Props) {
           position={Position.Left}
           style={{
             top: handleTopPct(i, nodeH),
-            width: 10, height: 10,
+            width: 9, height: 9,
             background: PORT_COLOR[port.type] ?? "#8e8e93",
             border: "2px solid #FFFFFF",
             borderRadius: "50%",
@@ -149,6 +150,7 @@ export function EquipmentNode({ data }: Props) {
         />
       ))}
 
+      {/* Output handles */}
       {outputPorts.map((port, i) => (
         <Handle
           key={port.id}
@@ -157,7 +159,7 @@ export function EquipmentNode({ data }: Props) {
           position={Position.Right}
           style={{
             top: handleTopPct(i, nodeH),
-            width: 10, height: 10,
+            width: 9, height: 9,
             background: PORT_COLOR[port.type] ?? "#8e8e93",
             border: "2px solid #FFFFFF",
             borderRadius: "50%",

@@ -18,7 +18,9 @@ const C = {
   textDim:     "#6e6e73",
   textLight:   "#86868b",
   accent:      "#005BA6",
+  accentHov:   "#0070C9",
   accentBg:    "#E6F0FA",
+  hoverBg:     "#F0F0F2",
   danger:      "#d72b3f",
 } as const;
 
@@ -59,7 +61,7 @@ const ROLE_DOT: Record<SceneMonitorRole, string> = {
 let _uid = 100;
 const uid = () => String(_uid++);
 
-// ── Reusable primitives ───────────────────────────────────────────────────────
+// ── Primitives ────────────────────────────────────────────────────────────────
 
 function Sel({ value, onChange, children, style }: {
   value: string;
@@ -82,6 +84,7 @@ function Sel({ value, onChange, children, style }: {
         cursor: "pointer",
         flex: 1,
         minWidth: 0,
+        transition: "border-color 0.2s ease-out",
         ...style,
       }}
     >
@@ -98,27 +101,35 @@ function XBtn({ onClick }: { onClick: () => void }) {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        background: "transparent", border: "none",
+        background: hov ? "#FFF0F0" : "transparent",
+        border: "none",
         color: hov ? C.danger : C.textLight,
-        cursor: "pointer", fontSize: 15, lineHeight: 1,
-        padding: "0 3px", flexShrink: 0,
-        transition: "color 0.12s",
+        cursor: "pointer",
+        fontSize: 13, lineHeight: 1,
+        padding: "2px 5px",
+        borderRadius: 4,
+        flexShrink: 0,
+        transition: "background 0.2s ease-out, color 0.2s ease-out",
       }}
     >×</button>
   );
 }
 
 function AddBtn({ onClick, label }: { onClick: () => void; label: string }) {
+  const [hov, setHov] = useState(false);
   return (
     <button
       onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
       style={{
-        background: C.accentBg,
+        background: hov ? C.accent : C.accentBg,
         border: `1px solid ${C.accent}`,
-        color: C.accent,
-        borderRadius: 5, padding: "2px 9px",
+        color: hov ? "#FFFFFF" : C.accent,
+        borderRadius: 5, padding: "2px 10px",
         fontSize: 10, fontWeight: 600, cursor: "pointer",
         letterSpacing: 0.2, flexShrink: 0,
+        transition: "background 0.2s ease-out, color 0.2s ease-out",
       }}
     >
       ＋ {label}
@@ -140,7 +151,7 @@ function SecHdr({ label, count, onAdd, addLabel }: {
       <span style={{ fontSize: 10, fontWeight: 700, color: C.textDim, letterSpacing: 1.2 }}>
         {label}
         {count !== undefined && (
-          <span style={{ color: C.accent, marginLeft: 5 }}>{count}</span>
+          <span style={{ color: C.accent, marginLeft: 5, fontWeight: 600 }}>{count}</span>
         )}
       </span>
       {onAdd && <AddBtn onClick={onAdd} label={addLabel ?? "追加"} />}
@@ -148,16 +159,26 @@ function SecHdr({ label, count, onAdd, addLabel }: {
   );
 }
 
+// Card with top accent bar (matches EquipmentNode style)
 function Card({ children, accentColor }: { children: React.ReactNode; accentColor: string }) {
   return (
     <div style={{
-      margin: "6px 8px",
-      background: C.pageBg,
+      margin: "5px 8px",
+      background: C.bg,
       border: `1px solid ${C.border}`,
-      borderRadius: 7,
+      borderRadius: 6,
       overflow: "hidden",
-      borderLeft: `3px solid ${accentColor}`,
     }}>
+      {/* Top accent bar — 3px, matches node style */}
+      <div style={{ height: 3, background: accentColor }} />
+      {children}
+    </div>
+  );
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: 9, color: C.textLight, fontWeight: 700, letterSpacing: 0.5, marginBottom: 3 }}>
       {children}
     </div>
   );
@@ -175,8 +196,7 @@ function CameraCard({ cam, onChange, onRemove }: {
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
         padding: "5px 8px 5px 10px",
-        background: C.bg,
-        borderBottom: `1px solid ${C.borderFaint}`,
+        borderBottom: `1px solid ${C.border}`,
       }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: C.text, flex: 1 }}>
           {DB[cam.model as CameraModelId]?.name ?? cam.model}
@@ -208,8 +228,7 @@ function MonitorCard({ mon, cameras, onChange, onRemove }: {
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
         padding: "5px 8px 5px 10px",
-        background: C.bg,
-        borderBottom: `1px solid ${C.borderFaint}`,
+        borderBottom: `1px solid ${C.border}`,
       }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: dot, flex: 1, letterSpacing: 0.3 }}>
           {SCENE_ROLE_LABELS[mon.role]}
@@ -265,19 +284,18 @@ function WirelessCard({ ws, cameras, monitors, onChange, onRemove }: {
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
         padding: "5px 8px 5px 10px",
-        background: C.bg,
-        borderBottom: `1px solid ${C.borderFaint}`,
+        borderBottom: `1px solid ${C.border}`,
       }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: "#ff9f0a", flex: 1, letterSpacing: 0.5 }}>
           WIRELESS SET
         </span>
         <XBtn onClick={onRemove} />
       </div>
-      <div style={{ padding: "7px 10px", display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ padding: "7px 10px", display: "flex", flexDirection: "column", gap: 7 }}>
         {/* TX / RX */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
           <div>
-            <div style={{ fontSize: 9, color: C.textLight, fontWeight: 700, marginBottom: 3 }}>TX</div>
+            <FieldLabel>TX</FieldLabel>
             <Sel
               value={ws.txModel ?? "wireless_tx"}
               onChange={v => onChange({ ...ws, txModel: v as WirelessModelId })}
@@ -288,7 +306,7 @@ function WirelessCard({ ws, cameras, monitors, onChange, onRemove }: {
             </Sel>
           </div>
           <div>
-            <div style={{ fontSize: 9, color: C.textLight, fontWeight: 700, marginBottom: 3 }}>RX</div>
+            <FieldLabel>RX</FieldLabel>
             <Sel
               value={ws.rxModel ?? "wireless_rx"}
               onChange={v => onChange({ ...ws, rxModel: v as WirelessModelId })}
@@ -302,7 +320,7 @@ function WirelessCard({ ws, cameras, monitors, onChange, onRemove }: {
 
         {/* Source camera */}
         <div>
-          <div style={{ fontSize: 9, color: C.textLight, fontWeight: 700, marginBottom: 3 }}>送信元</div>
+          <FieldLabel>送信元カメラ</FieldLabel>
           <Sel value={ws.sourceId} onChange={v => onChange({ ...ws, sourceId: v })}>
             {cameras.map(c => (
               <option key={c.id} value={c.id}>
@@ -315,24 +333,24 @@ function WirelessCard({ ws, cameras, monitors, onChange, onRemove }: {
         {/* Destination monitors */}
         {monitors.length > 0 && (
           <div>
-            <div style={{ fontSize: 9, color: C.textLight, fontWeight: 700, marginBottom: 3 }}>
-              接続先
-            </div>
+            <FieldLabel>接続先モニター</FieldLabel>
             <div style={{
-              background: C.bg,
+              background: C.pageBg,
               border: `1px solid ${C.border}`,
               borderRadius: 5,
               overflow: "hidden",
             }}>
               {monitors.map((mon, i) => {
                 const checked = ws.destinationIds.includes(mon.id);
+                const dot = ROLE_DOT[mon.role] ?? C.textLight;
                 return (
                   <label key={mon.id} style={{
                     display: "flex", alignItems: "center", gap: 7,
-                    padding: "4px 8px",
+                    padding: "5px 8px",
                     cursor: "pointer",
                     borderBottom: i < monitors.length - 1 ? `1px solid ${C.borderFaint}` : "none",
-                    background: checked ? "#F0F6FF" : "transparent",
+                    background: checked ? "#EFF5FF" : "transparent",
+                    transition: "background 0.15s ease-out",
                   }}>
                     <input
                       type="checkbox"
@@ -345,6 +363,8 @@ function WirelessCard({ ws, cameras, monitors, onChange, onRemove }: {
                       }}
                       style={{ accentColor: C.accent, cursor: "pointer", flexShrink: 0 }}
                     />
+                    {/* Role dot */}
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: dot, flexShrink: 0 }} />
                     <span style={{ fontSize: 10, color: C.text, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {DB[mon.model as EquipmentModelId]?.name ?? mon.model}
                     </span>
@@ -409,7 +429,7 @@ export function ScenePanel({ scene, onChange, onResetLayout }: Props) {
 
   return (
     <div style={{
-      width: 280,
+      width: 272,
       flexShrink: 0,
       background: C.bg,
       borderLeft: `1px solid ${C.border}`,
@@ -432,10 +452,11 @@ export function ScenePanel({ scene, onChange, onResetLayout }: Props) {
 
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: "auto" }}>
-        {/* Cameras */}
+
+        {/* CAMERAS */}
         <SecHdr label="CAMERAS" count={scene.cameras.length} onAdd={addCamera} addLabel="追加" />
         {scene.cameras.length === 0 && (
-          <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "10px 0" }}>
+          <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "12px 0" }}>
             カメラを追加してください
           </p>
         )}
@@ -448,10 +469,10 @@ export function ScenePanel({ scene, onChange, onResetLayout }: Props) {
           />
         ))}
 
-        {/* Monitors */}
+        {/* MONITORS */}
         <SecHdr label="MONITORS" count={scene.monitors.length} onAdd={addMonitor} addLabel="追加" />
         {scene.monitors.length === 0 && (
-          <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "10px 0" }}>
+          <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "12px 0" }}>
             モニターを追加してください
           </p>
         )}
@@ -465,7 +486,7 @@ export function ScenePanel({ scene, onChange, onResetLayout }: Props) {
           />
         ))}
 
-        {/* Wireless */}
+        {/* WIRELESS */}
         <SecHdr label="WIRELESS" count={scene.wirelessSets.length} onAdd={addWireless} addLabel="追加" />
         {scene.wirelessSets.map(ws => (
           <WirelessCard
@@ -478,31 +499,44 @@ export function ScenePanel({ scene, onChange, onResetLayout }: Props) {
           />
         ))}
 
-        {/* Recorders (placeholder) */}
+        {/* RECORDERS */}
         <SecHdr label="RECORDERS" />
-        <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "10px 12px", lineHeight: 1.6 }}>
+        <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "12px", lineHeight: 1.7 }}>
           レコーダー対応は今後追加予定
         </p>
+
+        {/* Bottom spacer */}
+        <div style={{ height: 8 }} />
       </div>
 
       {/* Footer */}
       <div style={{ borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
-        <button
-          onClick={onResetLayout}
-          style={{
-            background: "transparent", border: "none",
-            color: C.textDim, cursor: "pointer",
-            fontSize: 10, padding: "9px 12px",
-            textAlign: "left", width: "100%",
-            display: "flex", alignItems: "center", gap: 6,
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = C.text)}
-          onMouseLeave={e => (e.currentTarget.style.color = C.textDim)}
-        >
-          <span style={{ fontSize: 13 }}>⟳</span>
-          自動レイアウトに戻す
-        </button>
+        <ResetBtn onClick={onResetLayout} />
       </div>
     </div>
+  );
+}
+
+function ResetBtn({ onClick }: { onClick: () => void }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? C.pageBg : "transparent",
+        border: "none",
+        color: hov ? C.text : C.textDim,
+        cursor: "pointer",
+        fontSize: 10, padding: "10px 12px",
+        textAlign: "left", width: "100%",
+        display: "flex", alignItems: "center", gap: 6,
+        transition: "background 0.2s ease-out, color 0.2s ease-out",
+      }}
+    >
+      <span style={{ fontSize: 12, display: "inline-block" }}>⟳</span>
+      自動レイアウトに戻す
+    </button>
   );
 }

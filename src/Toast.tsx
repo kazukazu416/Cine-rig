@@ -14,7 +14,7 @@ export function Toast({ toasts, onDismiss }: Props) {
   return (
     <div style={{
       position: "absolute",
-      top: 56,
+      top: 12,
       left: "50%",
       transform: "translateX(-50%)",
       display: "flex",
@@ -28,18 +28,19 @@ export function Toast({ toasts, onDismiss }: Props) {
         <div
           key={t.id}
           style={{
-            background: t.type === "warning" ? "#431407" : "#0f172a",
-            border: `1px solid ${t.type === "warning" ? "#c2410c" : "#334155"}`,
-            color: t.type === "warning" ? "#fdba74" : "#e2e8f0",
-            borderRadius: 6,
+            background: t.type === "warning" ? "#FFF7ED" : "#FFFFFF",
+            border: `1px solid ${t.type === "warning" ? "rgba(194,65,12,0.22)" : "rgba(0,0,0,0.10)"}`,
+            color: t.type === "warning" ? "#9a3412" : "#1d1d1f",
+            borderRadius: 8,
             padding: "7px 12px",
             fontSize: 12,
             display: "flex",
             alignItems: "center",
             gap: 10,
             pointerEvents: "all",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
             maxWidth: 420,
+            fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
           }}
         >
           {t.message}
@@ -50,10 +51,11 @@ export function Toast({ toasts, onDismiss }: Props) {
               border: "none",
               color: "inherit",
               cursor: "pointer",
-              opacity: 0.6,
+              opacity: 0.5,
               fontSize: 15,
               lineHeight: 1,
               flexShrink: 0,
+              padding: "0 2px",
             }}
           >
             ×

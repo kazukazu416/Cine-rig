@@ -5,8 +5,11 @@
 }
 
 body {
-  background: #0f172a;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: #F5F5F7;
+  font-family: -apple-system, 'SF Pro Display', Inter, ui-sans-serif, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1d1d1f;
 }
 
 #root {
@@ -14,7 +17,37 @@ body {
   height: 100vh;
 }
 
-/* React Flow dark background */
-.react-flow__background {
-  background: #0f172a;
+/* ── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar          { width: 4px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: rgba(0,0,0,0.12); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+
+/* ── React Flow — light canvas ─────────────────────────── */
+.react-flow__background       { background: #FAFAFA !important; }
+.react-flow__pane             { cursor: default; }
+
+/* Node selection ring */
+.react-flow__node.selected > div {
+  outline: 2px solid #005BA6 !important;
+  outline-offset: 2px;
+  border-radius: 6px;
 }
+
+/* Controls — light */
+.react-flow__controls         { box-shadow: none !important; }
+.react-flow__controls-button  {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+  color: #6e6e73 !important;
+  transition: background 0.15s ease-out;
+}
+.react-flow__controls-button:hover { background: #F5F5F7 !important; }
+.react-flow__controls-button svg   { fill: #6e6e73 !important; }
+
+/* Minimap */
+.react-flow__minimap-mask     { fill: rgba(0,0,0,0.03) !important; }
+
+/* select element — accent focus ring */
+select:focus { outline: 2px solid rgba(0,91,166,0.35); outline-offset: 1px; }
+input:focus  { outline: 2px solid rgba(0,91,166,0.35); outline-offset: 1px; }

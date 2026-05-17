@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { DB, MONITOR_MODELS, type CameraModelId, type EquipmentModelId } from "./equipmentDB";
 
 const C = {
-  bg:        "#FAFAFA",
+  bg:        "#FFFFFF",
+  pageBg:    "#FAFAFA",
   border:    "rgba(0,0,0,0.08)",
   text:      "#1d1d1f",
   textDim:   "#6e6e73",
@@ -34,11 +35,12 @@ const RECORDER_IDS: EquipmentModelId[] = [
   "atomos_shogun_connect", "bm_video_assist_7_12g",
 ];
 
-const SECTIONS = [
-  { label: "カメラ",     ids: CAMERA_IDS as EquipmentModelId[] },
-  { label: "モニター",   ids: MONITOR_MODELS as EquipmentModelId[] },
-  { label: "ワイヤレス", ids: WIRELESS_IDS },
-  { label: "レコーダー", ids: RECORDER_IDS },
+// Category accent colors match TYPE_COLOR in EquipmentNode
+const SECTION_META = [
+  { label: "カメラ",     ids: CAMERA_IDS as EquipmentModelId[],              dot: "#30d158" },
+  { label: "モニター",   ids: MONITOR_MODELS as EquipmentModelId[],           dot: "#8e8e93" },
+  { label: "ワイヤレス", ids: WIRELESS_IDS,                                   dot: "#ff9f0a" },
+  { label: "レコーダー", ids: RECORDER_IDS,                                   dot: "#bf5af2" },
 ];
 
 function LibraryItem({ modelId }: { modelId: EquipmentModelId }) {
@@ -54,7 +56,7 @@ function LibraryItem({ modelId }: { modelId: EquipmentModelId }) {
         borderRadius: 5,
         background: hovered ? C.hoverBg : "transparent",
         cursor: "default",
-        transition: "background 0.12s",
+        transition: "background 0.2s ease-out",
       }}
     >
       <div style={{ fontSize: 11, fontWeight: 500, color: C.text, lineHeight: 1.3 }}>
@@ -69,9 +71,53 @@ function LibraryItem({ modelId }: { modelId: EquipmentModelId }) {
   );
 }
 
+function SectionToggle({ label, dot, count, isOpen, onToggle }: {
+  label: string; dot: string; count: number; isOpen: boolean; onToggle: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onToggle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: "100%",
+        background: hovered ? C.hoverBg : C.sectionBg,
+        border: "none",
+        borderBottom: `1px solid ${C.border}`,
+        padding: "6px 10px",
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        cursor: "pointer",
+        textAlign: "left",
+        transition: "background 0.2s ease-out",
+      }}
+    >
+      {/* Category dot */}
+      <div style={{
+        width: 6, height: 6,
+        borderRadius: "50%",
+        background: dot,
+        flexShrink: 0,
+      }} />
+      <span style={{ fontSize: 10, fontWeight: 700, color: C.textDim, letterSpacing: 0.5, flex: 1 }}>
+        {label.toUpperCase()}
+        <span style={{ color: C.textLight, fontWeight: 400, marginLeft: 5 }}>
+          {count}
+        </span>
+      </span>
+      <span style={{ fontSize: 9, color: C.textLight, transition: "transform 0.2s ease-out", display: "inline-block", transform: isOpen ? "rotate(90deg)" : "none" }}>
+        ▸
+      </span>
+    </button>
+  );
+}
+
 export function EquipmentLibrary() {
   const [query, setQuery] = useState("");
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["カメラ"]));
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const toggleSection = (label: string) => {
     setOpenSections(prev => {
@@ -96,12 +142,15 @@ export function EquipmentLibrary() {
     }}>
       {/* Header */}
       <div style={{
-        padding: "10px 12px 8px",
+        padding: "10px 12px 9px",
         borderBottom: `1px solid ${C.border}`,
         background: C.sectionBg,
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: C.textDim, letterSpacing: 1.5, marginBottom: 7 }}>
+        <div style={{
+          fontSize: 10, fontWeight: 700, color: C.textDim,
+          letterSpacing: 1.5, marginBottom: 7,
+        }}>
           LIBRARY
         </div>
         <input
@@ -109,23 +158,26 @@ export function EquipmentLibrary() {
           placeholder="機材を検索..."
           value={query}
           onChange={e => setQuery(e.target.value)}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setSearchFocused(false)}
           style={{
             width: "100%",
             background: "#FFFFFF",
-            border: `1px solid ${C.border}`,
+            border: `1px solid ${searchFocused ? C.accent : C.border}`,
             borderRadius: 6,
             padding: "5px 8px",
             fontSize: 11,
             color: C.text,
             outline: "none",
             boxSizing: "border-box",
+            transition: "border-color 0.2s ease-out",
           }}
         />
       </div>
 
       {/* Sections */}
       <div style={{ flex: 1, overflowY: "auto" }}>
-        {SECTIONS.map(({ label, ids }) => {
+        {SECTION_META.map(({ label, ids, dot }) => {
           const filtered = q
             ? ids.filter(id => {
                 const tmpl = DB[id];
@@ -141,33 +193,15 @@ export function EquipmentLibrary() {
 
           return (
             <div key={label}>
-              <button
-                onClick={() => toggleSection(label)}
-                style={{
-                  width: "100%",
-                  background: C.sectionBg,
-                  border: "none",
-                  borderBottom: `1px solid ${C.border}`,
-                  padding: "6px 10px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
-              >
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.textDim, letterSpacing: 0.5 }}>
-                  {label.toUpperCase()}
-                  <span style={{ color: C.textLight, fontWeight: 400, marginLeft: 5 }}>
-                    {filtered.length}
-                  </span>
-                </span>
-                <span style={{ fontSize: 10, color: C.textLight }}>
-                  {isOpen ? "▾" : "▸"}
-                </span>
-              </button>
+              <SectionToggle
+                label={label}
+                dot={dot}
+                count={filtered.length}
+                isOpen={isOpen}
+                onToggle={() => toggleSection(label)}
+              />
               {isOpen && (
-                <div style={{ padding: "4px 2px" }}>
+                <div style={{ padding: "4px 2px", background: C.bg }}>
                   {filtered.map(id => <LibraryItem key={id} modelId={id} />)}
                 </div>
               )}

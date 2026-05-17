@@ -83,7 +83,7 @@ export default function App() {
     };
   }, []);
 
-  // ── Sync scene → ReactFlow state ─────────────────────────────────────────
+  // ── Sync scene → ReactFlow ────────────────────────────────────────────────
 
   useEffect(() => {
     const { nodes: autoNodes, edges: autoEdges } = buildAutoLayout(scene);
@@ -116,7 +116,7 @@ export default function App() {
     }
   }, [hasManualEdits]);
 
-  // ── Node changes: persist drag positions ─────────────────────────────────
+  // ── Node changes ──────────────────────────────────────────────────────────
 
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
     onNodesChange0(changes);
@@ -143,7 +143,7 @@ export default function App() {
     }
   }, [onEdgesChange0]);
 
-  // ── Connect (drag between handles) ───────────────────────────────────────
+  // ── Connect ───────────────────────────────────────────────────────────────
 
   const handleConnect = useCallback((connection: Connection) => {
     setEdgeMode("manual");
@@ -172,7 +172,7 @@ export default function App() {
     }, eds));
   }, [rfNodes, addToast, setRfEdges]);
 
-  // ── Reconnect (drag existing edge endpoint) ───────────────────────────────
+  // ── Reconnect ─────────────────────────────────────────────────────────────
 
   const handleReconnect: OnReconnect<Edge> = useCallback((oldEdge, newConnection) => {
     setEdgeMode("manual");
@@ -249,103 +249,157 @@ export default function App() {
     ? rfEdges.find(e => e.id === selectedEdgeId) ?? null
     : null;
 
-  return (
-    <div style={{
-      display: "flex",
-      width: "100vw",
-      height: "100vh",
-      fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
-      background: "#F5F5F7",
-    }}>
-      {/* Left: Equipment Library */}
-      <EquipmentLibrary />
+  const font = "-apple-system, 'SF Pro Display', Inter, sans-serif";
 
-      {/* Centre: Canvas */}
-      <div style={{ flex: 1, position: "relative", background: "#FAFAFA" }}>
-        <ReactFlow
-          nodes={rfNodes}
-          edges={rfEdges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          onNodesChange={handleNodesChange}
-          onEdgesChange={handleEdgesChange}
-          onConnect={handleConnect}
-          onReconnect={handleReconnect}
-          onEdgeClick={handleEdgeClick}
-          onPaneClick={handlePaneClick}
-          onNodeClick={handleNodeClick}
-          deleteKeyCode="Delete"
-          reconnectRadius={20}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          proOptions={{ hideAttribution: true }}
-          style={{ background: "#FAFAFA" }}
-        >
-          <Background color="rgba(0,0,0,0.05)" gap={20} />
-          <Controls style={{
-            background: "#FFFFFF",
-            border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 8,
-            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          }} />
-          <MiniMap
-            nodeColor={n => {
-              const t = (n.data?.equipment as { type?: string } | undefined)?.type;
-              const m: Record<string, string> = {
-                camera: "#30d158", monitor: "#8e8e93",
-                wireless_tx: "#ff9f0a", wireless_rx: "#ff9f0a",
-                recorder: "#bf5af2",
-              };
-              return m[t ?? ""] ?? "#8e8e93";
-            }}
-            style={{
+  return (
+    <div style={{ display: "flex", flexDirection: "column", width: "100vw", height: "100vh", fontFamily: font }}>
+
+      {/* ── Top bar ───────────────────────────────────────────────── */}
+      <div style={{
+        height: 36,
+        flexShrink: 0,
+        background: "#FFFFFF",
+        borderBottom: "1px solid rgba(0,0,0,0.08)",
+        display: "flex",
+        alignItems: "center",
+        padding: "0 16px",
+        gap: 12,
+        zIndex: 50,
+      }}>
+        {/* App name */}
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#1d1d1f", letterSpacing: -0.4 }}>
+          CineRig
+        </span>
+
+        <div style={{ width: 1, height: 16, background: "rgba(0,0,0,0.10)", flexShrink: 0 }} />
+
+        {/* Total counts */}
+        <span style={{ fontSize: 11, color: "#86868b" }}>
+          {scene.cameras.length} cam · {scene.monitors.length} mon · {scene.wirelessSets.length} wireless
+        </span>
+
+        {/* Mode badge — only shown in manual mode */}
+        {edgeMode === "manual" && (
+          <span style={{
+            background: "#FFF7ED",
+            border: "1px solid rgba(194,65,12,0.22)",
+            color: "#c2410c",
+            fontSize: 10, fontWeight: 600,
+            padding: "2px 8px", borderRadius: 4,
+            letterSpacing: 0.3,
+          }}>
+            手動配線中
+          </span>
+        )}
+
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+
+        {/* Reset button in top bar */}
+        <TopBarBtn onClick={handleResetLayout} title="配線図を自動レイアウトに戻す">
+          ⟳ リセット
+        </TopBarBtn>
+      </div>
+
+      {/* ── Main area ─────────────────────────────────────────────── */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+
+        {/* Left: Library */}
+        <EquipmentLibrary />
+
+        {/* Centre: Canvas */}
+        <div style={{ flex: 1, position: "relative", background: "#FAFAFA" }}>
+          <ReactFlow
+            nodes={rfNodes}
+            edges={rfEdges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
+            onConnect={handleConnect}
+            onReconnect={handleReconnect}
+            onEdgeClick={handleEdgeClick}
+            onPaneClick={handlePaneClick}
+            onNodeClick={handleNodeClick}
+            deleteKeyCode="Delete"
+            reconnectRadius={20}
+            fitView
+            fitViewOptions={{ padding: 0.22 }}
+            proOptions={{ hideAttribution: true }}
+            style={{ background: "#FAFAFA" }}
+          >
+            <Background
+              color="rgba(0,0,0,0.06)"
+              gap={24}
+              size={1}
+            />
+            <Controls style={{
               background: "#FFFFFF",
               border: "1px solid rgba(0,0,0,0.08)",
               borderRadius: 8,
-            }}
-          />
-        </ReactFlow>
+              overflow: "hidden",
+            }} />
+            <MiniMap
+              nodeColor={n => {
+                const t = (n.data?.equipment as { type?: string } | undefined)?.type;
+                const m: Record<string, string> = {
+                  camera: "#30d158", monitor: "#8e8e93",
+                  wireless_tx: "#ff9f0a", wireless_rx: "#ff9f0a",
+                  recorder: "#bf5af2",
+                };
+                return m[t ?? ""] ?? "#8e8e93";
+              }}
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid rgba(0,0,0,0.08)",
+                borderRadius: 8,
+              }}
+            />
+          </ReactFlow>
 
-        {selectedEdge && (
-          <EdgePanel
-            edge={selectedEdge}
-            onChangeType={handleChangeEdgeType}
-            onDelete={handleDeleteEdge}
-          />
-        )}
+          {selectedEdge && (
+            <EdgePanel
+              edge={selectedEdge}
+              onChangeType={handleChangeEdgeType}
+              onDelete={handleDeleteEdge}
+            />
+          )}
 
-        <Toast toasts={toasts} onDismiss={dismissToast} />
+          <Toast toasts={toasts} onDismiss={dismissToast} />
 
-        {/* Cable legend */}
-        <div style={{
-          position: "absolute", bottom: 16, right: 16,
-          background: "#FFFFFF",
-          border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 8,
-          padding: "8px 12px",
-          display: "flex", flexDirection: "column", gap: 5,
-          pointerEvents: "none",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          zIndex: 10,
-        }}>
-          <span style={{ color: "#86868b", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>
-            Cable
-          </span>
-          {LEGEND.map(({ label, color }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, color: "#1d1d1f", fontSize: 11 }}>
-              <div style={{ width: 20, height: 2.5, background: color, borderRadius: 2 }} />
-              {label}
-            </div>
-          ))}
+          {/* Cable legend */}
+          <div style={{
+            position: "absolute", bottom: 16, right: 16,
+            background: "#FFFFFF",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: 8,
+            padding: "8px 12px",
+            display: "flex", flexDirection: "column", gap: 5,
+            pointerEvents: "none",
+            zIndex: 10,
+          }}>
+            <span style={{
+              color: "#86868b", fontSize: 9, fontWeight: 700,
+              letterSpacing: 1.5, textTransform: "uppercase",
+            }}>
+              Cable
+            </span>
+            {LEGEND.map(({ label, color }) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, color: "#1d1d1f", fontSize: 11 }}>
+                <div style={{ width: 18, height: 2.5, background: color, borderRadius: 2 }} />
+                {label}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Right: Scene Panel */}
-      <ScenePanel
-        scene={scene}
-        onChange={applySceneChange}
-        onResetLayout={handleResetLayout}
-      />
+        {/* Right: Scene Panel */}
+        <ScenePanel
+          scene={scene}
+          onChange={applySceneChange}
+          onResetLayout={handleResetLayout}
+        />
+      </div>
 
       {pendingScene !== null && (
         <WarningModal
@@ -355,5 +409,35 @@ export default function App() {
         />
       )}
     </div>
+  );
+}
+
+function TopBarBtn({ onClick, title, children }: {
+  onClick: () => void;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? "#F5F5F7" : "transparent",
+        border: "1px solid rgba(0,0,0,0.10)",
+        color: hov ? "#1d1d1f" : "#6e6e73",
+        borderRadius: 5,
+        padding: "3px 10px",
+        fontSize: 11,
+        fontWeight: 500,
+        cursor: "pointer",
+        transition: "background 0.2s ease-out, color 0.2s ease-out",
+        fontFamily: "inherit",
+      }}
+    >
+      {children}
+    </button>
   );
 }
