@@ -66,3 +66,19 @@ Design decisions and architecture notes live in `docs/CineRig/` (Obsidian vault)
 - コミットメッセージは日本語で簡潔に
 - 不明点があれば docs/CineRig/Requirements.md を確認
 - 大きな設計変更は docs/CineRig/Decisions.md に記録
+
+## Design Reference
+
+UIの設計方針は docs/CineRig/Design.md を参照すること。
+新規UIの実装・改修は必ずこのファイルを読んでから行う。
+
+## 実装後の自己チェック
+
+新機能を実装したら、以下を自分でレビューしてからユーザーに報告すること：
+
+1. ビルドエラーがないか（npm run build）
+2. Design.md のルールに従っているか
+3. 既存機能を壊していないか
+4. Logs.md に変更内容を記録したか
+
+問題があれば修正してから報告する。

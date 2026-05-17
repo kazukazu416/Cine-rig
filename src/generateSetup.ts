@@ -1,88 +1,93 @@
-import { Equipment, Connection, Setup, SetupInput } from "./types";
+import type { Equipment, Connection, Setup, CameraInput } from "./types";
+import { instantiate, instantiateMonitor, type EquipmentModelId } from "./equipmentDB";
 
-const FX6: Equipment = {
-  id: "fx6",
-  name: "Sony FX6",
-  type: "camera",
-  ports: [
-    { id: "fx6_sdi_out",  type: "SDI",  direction: "out" },
-    { id: "fx6_hdmi_out", type: "HDMI", direction: "out" },
-  ],
-};
-
-const WIRELESS_TX: Equipment = {
-  id: "wireless_tx",
-  name: "Wireless TX",
-  type: "wireless_tx",
-  ports: [{ id: "wtx_sdi_in", type: "SDI", direction: "in" }],
-};
-
-const WIRELESS_RX: Equipment = {
-  id: "wireless_rx",
-  name: "Wireless RX",
-  type: "wireless_rx",
-  ports: [{ id: "wrx_sdi_out", type: "SDI", direction: "out" }],
-};
-
-function makeMonitor(n: number): Equipment {
-  return {
-    id: `monitor_${n}`,
-    name: `Monitor ${n}`,
-    type: "monitor",
-    ports: [
-      { id: `mon${n}_sdi_in`,  type: "SDI",  direction: "in" },
-      { id: `mon${n}_hdmi_in`, type: "HDMI", direction: "in" },
-    ],
-  };
+export function generateSetup(inputs: CameraInput[]): Setup {
+  const equipments: Equipment[] = [];
+  const connections: Connection[] = [];
+  for (const input of inputs) {
+    const rig = buildRig(input);
+    equipments.push(...rig.equipments);
+    connections.push(...rig.connections);
+  }
+  return { equipments, connections };
 }
 
-export function generateSetup(input: SetupInput): Setup {
-  const equipments: Equipment[] = [FX6];
+function buildRig(input: CameraInput): Setup {
+  const uid = `rig_${input.id}`;
+  const equipments: Equipment[] = [];
   const connections: Connection[] = [];
 
-  const monitors = Array.from({ length: input.monitors }, (_, i) => makeMonitor(i + 1));
+  const camera = instantiate(input.model.toLowerCase() as EquipmentModelId, uid);
+  equipments.push(camera);
+
+  const monitors = input.monitors.map((mon, i) =>
+    instantiateMonitor(i + 1, uid, mon.model)
+  );
   equipments.push(...monitors);
 
-  if (input.wireless) {
-    equipments.push(WIRELESS_TX, WIRELESS_RX);
+  // Camera output ports, SDI-first priority
+  const availableOuts = [
+    ...camera.ports.filter(p => p.type === "SDI"  && p.direction === "out"),
+    ...camera.ports.filter(p => p.type === "HDMI" && p.direction === "out"),
+  ];
 
-    // FX6 SDI → wireless TX → (air) → wireless RX → monitor 1
-    connections.push({
-      from: { equipmentId: "fx6",         portId: "fx6_sdi_out" },
-      to:   { equipmentId: "wireless_tx", portId: "wtx_sdi_in" },
-      cableType: "SDI",
-    });
-    if (monitors.length >= 1) {
-      connections.push({
-        from: { equipmentId: "wireless_rx", portId: "wrx_sdi_out" },
-        to:   { equipmentId: "monitor_1",   portId: "mon1_sdi_in" },
-        cableType: "SDI",
-      });
+  if (input.wireless) {
+    const tx = instantiate("wireless_tx", uid);
+    const rx = instantiate("wireless_rx", uid);
+    equipments.push(tx, rx);
+
+    // First camera out → TX (match port type: SDI→SDI-in, HDMI→HDMI-in)
+    const camOut = availableOuts.shift();
+    if (camOut) {
+      const txIn = tx.ports.find(p => p.type === camOut.type && p.direction === "in");
+      if (txIn) {
+        connections.push({
+          from: { equipmentId: camera.id, portId: camOut.id },
+          to:   { equipmentId: tx.id,     portId: txIn.id },
+          cableType: camOut.type,
+        });
+      }
     }
 
-    // FX6 HDMI → monitor 2 (director / client monitor)
-    if (monitors.length >= 2) {
-      connections.push({
-        from: { equipmentId: "fx6",       portId: "fx6_hdmi_out" },
-        to:   { equipmentId: "monitor_2", portId: "mon2_hdmi_in" },
-        cableType: "HDMI",
-      });
+    // RX → monitor[0]
+    const rxOut = rx.ports.find(p => p.direction === "out");
+    if (rxOut && monitors[0]) {
+      const monIn = monitors[0].ports.find(p => p.type === rxOut.type && p.direction === "in");
+      if (monIn) {
+        connections.push({
+          from: { equipmentId: rx.id,          portId: rxOut.id },
+          to:   { equipmentId: monitors[0].id,  portId: monIn.id },
+          cableType: rxOut.type,
+        });
+      }
+    }
+
+    // Remaining camera outs → monitors[1..n]
+    for (let i = 1; i < monitors.length; i++) {
+      const out = availableOuts.shift();
+      if (!out) break;
+      const monIn = monitors[i].ports.find(p => p.type === out.type && p.direction === "in");
+      if (monIn) {
+        connections.push({
+          from: { equipmentId: camera.id,       portId: out.id },
+          to:   { equipmentId: monitors[i].id,  portId: monIn.id },
+          cableType: out.type,
+        });
+      }
     }
   } else {
-    // No wireless: HDMI → monitor 1, SDI → monitor 2
-    if (monitors.length >= 1) {
-      connections.push({
-        from: { equipmentId: "fx6",       portId: "fx6_hdmi_out" },
-        to:   { equipmentId: "monitor_1", portId: "mon1_hdmi_in" },
-        cableType: "HDMI",
-      });
-    }
-    if (monitors.length >= 2) {
-      connections.push({
-        from: { equipmentId: "fx6",       portId: "fx6_sdi_out" },
-        to:   { equipmentId: "monitor_2", portId: "mon2_sdi_in" },
-        cableType: "SDI",
-      });
+    // Direct: camera outs → monitors in order
+    for (let i = 0; i < monitors.length; i++) {
+      const out = availableOuts.shift();
+      if (!out) break;
+      const monIn = monitors[i].ports.find(p => p.type === out.type && p.direction === "in");
+      if (monIn) {
+        connections.push({
+          from: { equipmentId: camera.id,       portId: out.id },
+          to:   { equipmentId: monitors[i].id,  portId: monIn.id },
+          cableType: out.type,
+        });
+      }
     }
   }
 

@@ -2,10 +2,10 @@ import { Handle, Position } from "@xyflow/react";
 import type { Equipment } from "./types";
 
 const TYPE_COLOR: Record<string, string> = {
-  camera:      "#22c55e",
-  monitor:     "#94a3b8",
-  wireless_tx: "#f97316",
-  wireless_rx: "#f97316",
+  camera:      "#32d74b",
+  monitor:     "#8e8e93",
+  wireless_tx: "#ff9f0a",
+  wireless_rx: "#ff9f0a",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -15,27 +15,164 @@ const TYPE_LABEL: Record<string, string> = {
   wireless_rx: "Wireless RX",
 };
 
+const PORT_COLOR: Record<string, string> = {
+  SDI:  "#3b82f6",
+  HDMI: "#f59e0b",
+};
+
+const NODE_W    = 224;
+const HEADER_H  = 54;
+const PORT_ROW_H = 28;
+const V_PAD     = 8;
+
+function handleTopPct(rowIdx: number, nodeH: number): string {
+  const y = HEADER_H + V_PAD + rowIdx * PORT_ROW_H + PORT_ROW_H / 2;
+  return `${(y / nodeH) * 100}%`;
+}
+
 interface Props {
-  data: { equipment: Equipment };
+  data: { equipment: Equipment; subtitle?: string };
 }
 
 export function EquipmentNode({ data }: Props) {
-  const { equipment } = data;
-  const color = TYPE_COLOR[equipment.type] ?? "#888";
+  const { equipment, subtitle } = data;
+  const color    = TYPE_COLOR[equipment.type] ?? "#8e8e93";
+  const typeLabel = subtitle ?? TYPE_LABEL[equipment.type];
+
+  const inputPorts  = equipment.ports.filter(p => p.direction === "in");
+  const outputPorts = equipment.ports.filter(p => p.direction === "out");
+  const maxRows = Math.max(inputPorts.length, outputPorts.length, 1);
+  const nodeH   = HEADER_H + V_PAD + maxRows * PORT_ROW_H + V_PAD;
 
   return (
     <div style={{
-      background: "#1e293b",
-      border: `2px solid ${color}`,
-      borderRadius: 8,
-      padding: "10px 18px",
-      minWidth: 160,
-      color: "#f1f5f9",
+      position: "relative",
+      width: NODE_W,
+      height: nodeH,
+      background: "#1c1c1e",
+      border: "1px solid rgba(255,255,255,0.10)",
+      borderRadius: 10,
+      color: "#f5f5f7",
+      fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
+      overflow: "visible",
     }}>
-      <Handle type="target" position={Position.Left}  style={{ background: color, border: "none" }} />
-      <div style={{ fontWeight: 700, fontSize: 14 }}>{equipment.name}</div>
-      <div style={{ fontSize: 11, color, marginTop: 3 }}>{TYPE_LABEL[equipment.type]}</div>
-      <Handle type="source" position={Position.Right} style={{ background: color, border: "none" }} />
+      {/* Type accent bar */}
+      <div style={{
+        position: "absolute",
+        top: 0, left: 0, right: 0,
+        height: 3,
+        background: color,
+        borderRadius: "9px 9px 0 0",
+        pointerEvents: "none",
+      }} />
+
+      {/* Header */}
+      <div style={{
+        position: "absolute",
+        top: 0, left: 0, right: 0,
+        height: HEADER_H,
+        padding: "14px 14px 0",
+        borderBottom: "1px solid rgba(255,255,255,0.07)",
+      }}>
+        <div style={{
+          fontWeight: 600,
+          fontSize: 13,
+          lineHeight: 1.25,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          color: "#f5f5f7",
+          letterSpacing: -0.2,
+        }}>
+          {equipment.name}
+        </div>
+        <div style={{
+          fontSize: 10,
+          color,
+          marginTop: 3,
+          fontWeight: 500,
+          letterSpacing: 0.5,
+          textTransform: "uppercase",
+        }}>
+          {typeLabel}
+        </div>
+      </div>
+
+      {/* Port rows */}
+      <div style={{
+        position: "absolute",
+        top: HEADER_H + V_PAD,
+        left: 0, right: 0,
+      }}>
+        {Array.from({ length: maxRows }).map((_, i) => {
+          const inp = inputPorts[i];
+          const out = outputPorts[i];
+          return (
+            <div key={i} style={{
+              height: PORT_ROW_H,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 18px",
+            }}>
+              <span style={{
+                fontSize: 10,
+                fontWeight: 500,
+                letterSpacing: 0.4,
+                color: inp ? (PORT_COLOR[inp.type] ?? "#8e8e93") : "transparent",
+                userSelect: "none",
+              }}>
+                {inp ? `${inp.type} IN` : ""}
+              </span>
+              <span style={{
+                fontSize: 10,
+                fontWeight: 500,
+                letterSpacing: 0.4,
+                color: out ? (PORT_COLOR[out.type] ?? "#8e8e93") : "transparent",
+                userSelect: "none",
+              }}>
+                {out ? `${out.type} OUT` : ""}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Input handles */}
+      {inputPorts.map((port, i) => (
+        <Handle
+          key={port.id}
+          id={port.id}
+          type="target"
+          position={Position.Left}
+          style={{
+            top: handleTopPct(i, nodeH),
+            width: 10,
+            height: 10,
+            background: PORT_COLOR[port.type] ?? "#8e8e93",
+            border: "2px solid #1c1c1e",
+            borderRadius: "50%",
+          }}
+        />
+      ))}
+
+      {/* Output handles */}
+      {outputPorts.map((port, i) => (
+        <Handle
+          key={port.id}
+          id={port.id}
+          type="source"
+          position={Position.Right}
+          style={{
+            top: handleTopPct(i, nodeH),
+            width: 10,
+            height: 10,
+            background: PORT_COLOR[port.type] ?? "#8e8e93",
+            border: "2px solid #1c1c1e",
+            borderRadius: "50%",
+          }}
+        />
+      ))}
     </div>
   );
 }

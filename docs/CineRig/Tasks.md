@@ -14,8 +14,8 @@
 - [x] `claude` コマンドで起動・ログイン確認
 
 ### 🟡 ログインできたら
-- [ ] `generateSetup()` の実装
-- [ ] 動いたらGitにcommit
+- [x] `generateSetup()` の実装
+- [x] 動いたらGitにcommit
 
 ### 🟢 その後（Rule Engineフェーズ）
 - [ ] データモデルをTypeScriptで定義（Equipment / Port / Connection）

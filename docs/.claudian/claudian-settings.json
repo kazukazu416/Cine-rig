@@ -45,9 +45,9 @@
       "reasoningSummary": "detailed",
       "environmentVariables": "",
       "environmentHash": "",
-      "installationMethod": "native-windows",
-      "installationMethodsByHost": {},
-      "wslDistroOverride": "",
+      "installationMethodsByHost": {
+        "device:9e041cb8-e5f2-4313-8a5b-810ffa6886c1": "native-windows"
+      },
       "wslDistroOverridesByHost": {}
     },
     "opencode": {

@@ -4,13 +4,13 @@
   "title": "/plugin marketplace add agenticnotetaking/arsconte...",
   "titleGenerationStatus": "failed",
   "createdAt": 1778917029321,
-  "updatedAt": 1778917031895,
+  "updatedAt": 1778990469112,
   "lastResponseAt": 1778917031397,
   "sessionId": "e8ead5b4-3942-4ef1-ab55-9d047658087c",
   "providerState": {
     "providerSessionId": "e8ead5b4-3942-4ef1-ab55-9d047658087c"
   },
-  "currentNote": "Base.md",
+  "currentNote": "CineRig/Tasks.md",
   "usage": {
     "model": "opus",
     "inputTokens": 0,
