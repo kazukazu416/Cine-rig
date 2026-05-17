@@ -122,3 +122,12 @@ export interface Scene {
   monitors: MonitorInstance[];
   recorders: RecorderInstance[];
 }
+
+export const SCENE_ROLE_LABELS: Record<SceneMonitorRole, string> = {
+  onboard:   "オンボード",
+  focus:     "フォーカス",
+  frontline: "前線",
+  director:  "監督",
+  client:    "クライアント",
+  other:     "その他",
+};

@@ -43,7 +43,8 @@
       "WebFetch(domain:www.newsshooter.com)",
       "WebFetch(domain:www.imaging-resource.com)",
       "WebFetch(domain:accsoon.com)",
-      "WebFetch(domain:www.voiceandvideosales.com)"
+      "WebFetch(domain:www.voiceandvideosales.com)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)"
     ]
   }
 }

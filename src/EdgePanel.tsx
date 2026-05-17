@@ -16,19 +16,20 @@ export function EdgePanel({ edge, onChangeType, onDelete }: Props) {
       top: 12,
       left: "50%",
       transform: "translateX(-50%)",
-      background: "#1e293b",
-      border: "1px solid #334155",
+      background: "#FFFFFF",
+      border: "1px solid rgba(0,0,0,0.12)",
       borderRadius: 8,
-      padding: "8px 14px",
+      padding: "7px 12px",
       display: "flex",
       alignItems: "center",
       gap: 10,
       zIndex: 100,
-      boxShadow: "0 6px 24px rgba(0,0,0,0.5)",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
       pointerEvents: "all",
       whiteSpace: "nowrap",
+      fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
     }}>
-      <span style={{ color: "#475569", fontSize: 10, fontWeight: 700, letterSpacing: 1 }}>
+      <span style={{ color: "#86868b", fontSize: 10, fontWeight: 700, letterSpacing: 1 }}>
         CABLE
       </span>
 
@@ -41,16 +42,16 @@ export function EdgePanel({ edge, onChangeType, onDelete }: Props) {
               key={type}
               onClick={() => onChangeType(type)}
               style={{
-                background: active ? color : "#0f172a",
-                border: `1px solid ${color}`,
-                color: active ? "#fff" : color,
+                background: active ? color : "#F5F5F7",
+                border: `1px solid ${active ? color : "rgba(0,0,0,0.10)"}`,
+                color: active ? "#fff" : "#6e6e73",
                 borderRadius: 4,
                 padding: "3px 10px",
                 fontSize: 11,
                 fontWeight: 700,
                 cursor: "pointer",
                 letterSpacing: 0.4,
-                transition: "background 0.1s",
+                transition: "background 0.15s",
               }}
             >
               {type}
@@ -59,14 +60,14 @@ export function EdgePanel({ edge, onChangeType, onDelete }: Props) {
         })}
       </div>
 
-      <div style={{ width: 1, height: 18, background: "#334155" }} />
+      <div style={{ width: 1, height: 18, background: "rgba(0,0,0,0.08)" }} />
 
       <button
         onClick={onDelete}
         style={{
           background: "transparent",
           border: "none",
-          color: "#ef4444",
+          color: "#d72b3f",
           cursor: "pointer",
           fontSize: 12,
           fontWeight: 700,

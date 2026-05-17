@@ -2,7 +2,7 @@ import { Handle, Position } from "@xyflow/react";
 import type { Equipment } from "./types";
 
 const TYPE_COLOR: Record<string, string> = {
-  camera:      "#32d74b",
+  camera:      "#30d158",
   monitor:     "#8e8e93",
   wireless_tx: "#ff9f0a",
   wireless_rx: "#ff9f0a",
@@ -22,9 +22,9 @@ const PORT_COLOR: Record<string, string> = {
   HDMI: "#f59e0b",
 };
 
-const NODE_W    = 224;
-const HEADER_H  = 54;
-const PORT_ROW_H = 28;
+const NODE_W    = 208;
+const HEADER_H  = 50;
+const PORT_ROW_H = 26;
 const V_PAD     = 8;
 
 function handleTopPct(rowIdx: number, nodeH: number): string {
@@ -38,7 +38,7 @@ interface Props {
 
 export function EquipmentNode({ data }: Props) {
   const { equipment, subtitle } = data;
-  const color    = TYPE_COLOR[equipment.type] ?? "#8e8e93";
+  const color     = TYPE_COLOR[equipment.type] ?? "#8e8e93";
   const typeLabel = subtitle ?? TYPE_LABEL[equipment.type];
 
   const inputPorts  = equipment.ports.filter(p => p.direction === "in");
@@ -51,12 +51,13 @@ export function EquipmentNode({ data }: Props) {
       position: "relative",
       width: NODE_W,
       height: nodeH,
-      background: "#1c1c1e",
-      border: "1px solid rgba(255,255,255,0.10)",
-      borderRadius: 10,
-      color: "#f5f5f7",
+      background: "#FFFFFF",
+      border: "1px solid rgba(0,0,0,0.09)",
+      borderRadius: 8,
+      color: "#1d1d1f",
       fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
       overflow: "visible",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
     }}>
       {/* Type accent bar */}
       <div style={{
@@ -64,7 +65,7 @@ export function EquipmentNode({ data }: Props) {
         top: 0, left: 0, right: 0,
         height: 3,
         background: color,
-        borderRadius: "9px 9px 0 0",
+        borderRadius: "7px 7px 0 0",
         pointerEvents: "none",
       }} />
 
@@ -73,8 +74,8 @@ export function EquipmentNode({ data }: Props) {
         position: "absolute",
         top: 0, left: 0, right: 0,
         height: HEADER_H,
-        padding: "14px 14px 0",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
+        padding: "12px 12px 0",
+        borderBottom: "1px solid rgba(0,0,0,0.06)",
       }}>
         <div style={{
           fontWeight: 600,
@@ -83,7 +84,7 @@ export function EquipmentNode({ data }: Props) {
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
-          color: "#f5f5f7",
+          color: "#1d1d1f",
           letterSpacing: -0.2,
         }}>
           {equipment.name}
@@ -91,9 +92,9 @@ export function EquipmentNode({ data }: Props) {
         <div style={{
           fontSize: 10,
           color,
-          marginTop: 3,
-          fontWeight: 500,
-          letterSpacing: 0.5,
+          marginTop: 2,
+          fontWeight: 600,
+          letterSpacing: 0.3,
           textTransform: "uppercase",
         }}>
           {typeLabel}
@@ -101,11 +102,7 @@ export function EquipmentNode({ data }: Props) {
       </div>
 
       {/* Port rows */}
-      <div style={{
-        position: "absolute",
-        top: HEADER_H + V_PAD,
-        left: 0, right: 0,
-      }}>
+      <div style={{ position: "absolute", top: HEADER_H + V_PAD, left: 0, right: 0 }}>
         {Array.from({ length: maxRows }).map((_, i) => {
           const inp = inputPorts[i];
           const out = outputPorts[i];
@@ -115,22 +112,18 @@ export function EquipmentNode({ data }: Props) {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 18px",
+              padding: "0 16px",
             }}>
               <span style={{
-                fontSize: 10,
-                fontWeight: 500,
-                letterSpacing: 0.4,
-                color: inp ? (PORT_COLOR[inp.type] ?? "#8e8e93") : "transparent",
+                fontSize: 10, fontWeight: 500, letterSpacing: 0.3,
+                color: inp ? (PORT_COLOR[inp.type] ?? "#6e6e73") : "transparent",
                 userSelect: "none",
               }}>
                 {inp ? `${inp.type} IN` : ""}
               </span>
               <span style={{
-                fontSize: 10,
-                fontWeight: 500,
-                letterSpacing: 0.4,
-                color: out ? (PORT_COLOR[out.type] ?? "#8e8e93") : "transparent",
+                fontSize: 10, fontWeight: 500, letterSpacing: 0.3,
+                color: out ? (PORT_COLOR[out.type] ?? "#6e6e73") : "transparent",
                 userSelect: "none",
               }}>
                 {out ? `${out.type} OUT` : ""}
@@ -140,7 +133,6 @@ export function EquipmentNode({ data }: Props) {
         })}
       </div>
 
-      {/* Input handles */}
       {inputPorts.map((port, i) => (
         <Handle
           key={port.id}
@@ -149,16 +141,14 @@ export function EquipmentNode({ data }: Props) {
           position={Position.Left}
           style={{
             top: handleTopPct(i, nodeH),
-            width: 10,
-            height: 10,
+            width: 10, height: 10,
             background: PORT_COLOR[port.type] ?? "#8e8e93",
-            border: "2px solid #1c1c1e",
+            border: "2px solid #FFFFFF",
             borderRadius: "50%",
           }}
         />
       ))}
 
-      {/* Output handles */}
       {outputPorts.map((port, i) => (
         <Handle
           key={port.id}
@@ -167,10 +157,9 @@ export function EquipmentNode({ data }: Props) {
           position={Position.Right}
           style={{
             top: handleTopPct(i, nodeH),
-            width: 10,
-            height: 10,
+            width: 10, height: 10,
             background: PORT_COLOR[port.type] ?? "#8e8e93",
-            border: "2px solid #1c1c1e",
+            border: "2px solid #FFFFFF",
             borderRadius: "50%",
           }}
         />

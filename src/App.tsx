@@ -5,15 +5,16 @@ import {
   type Node, type Edge, type Connection, type NodeChange, type EdgeChange,
   type OnReconnect,
 } from "@xyflow/react";
-import { generateSetup } from "./generateSetup";
-import { setupToFlow } from "./setupToFlow";
+import { generateFromScene } from "./generateSetup";
+import { sceneToFlow } from "./setupToFlow";
 import { EquipmentNode } from "./EquipmentNode";
 import { CustomEdge } from "./CustomEdge";
-import { ControlPanel } from "./ControlPanel";
+import { ScenePanel } from "./ScenePanel";
+import { EquipmentLibrary } from "./EquipmentLibrary";
 import { EdgePanel } from "./EdgePanel";
 import { WarningModal } from "./WarningModal";
 import { Toast, type ToastItem } from "./Toast";
-import type { CameraInput, MonitorInput } from "./types";
+import type { Scene } from "./types";
 import { CABLE_COLORS, CABLE_TYPES } from "./types";
 
 const nodeTypes = { equipment: EquipmentNode };
@@ -32,20 +33,21 @@ function savePositions(pos: Record<string, { x: number; y: number }>) {
 
 const LEGEND = CABLE_TYPES.map(t => ({ label: t, color: CABLE_COLORS[t] ?? "#888" }));
 
-let nextCamId = 2;
-let nextMonId = 10;
+const INITIAL_SCENE: Scene = {
+  cameras: [{ id: "cam1", model: "fx6", label: "Main" }],
+  wirelessSets: [{
+    id: "ws1", txModel: "wireless_tx", rxModel: "wireless_rx",
+    sourceId: "cam1", destinationIds: ["mon2"],
+  }],
+  monitors: [
+    { id: "mon1", model: "smallhd_cine7",  role: "onboard",  cameraId: "cam1" },
+    { id: "mon2", model: "atomos_shogun7", role: "director", cameraId: "cam1" },
+  ],
+  recorders: [],
+};
 
 export default function App() {
-  const [inputs, setInputs] = useState<CameraInput[]>([
-    {
-      id: "1", model: "FX6", wireless: true,
-      monitors: [
-        { id: "m1", model: "smallhd_cine7",  role: "focus" },
-        { id: "m2", model: "atomos_shogun7", role: "director" },
-      ],
-    },
-  ]);
-
+  const [scene, setScene] = useState<Scene>(INITIAL_SCENE);
   const [rfNodes, setRfNodes, onNodesChange0] = useNodesState<Node>([]);
   const [rfEdges, setRfEdges, onEdgesChange0] = useEdgesState<Edge>([]);
 
@@ -55,7 +57,7 @@ export default function App() {
 
   const positionsRef = useRef<Record<string, { x: number; y: number }>>(loadPositions());
 
-  const [pendingInputs, setPendingInputs] = useState<CameraInput[] | null>(null);
+  const [pendingScene, setPendingScene] = useState<Scene | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
@@ -71,9 +73,9 @@ export default function App() {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  const buildAutoLayout = useCallback((ins: CameraInput[]) => {
-    const setup = generateSetup(ins);
-    const { nodes, edges } = setupToFlow(setup, ins);
+  const buildAutoLayout = useCallback((sc: Scene) => {
+    const setup = generateFromScene(sc);
+    const { nodes, edges } = sceneToFlow(setup, sc);
     const pos = positionsRef.current;
     return {
       nodes: nodes.map(n => ({ ...n, position: pos[n.id] ?? n.position })),
@@ -81,42 +83,40 @@ export default function App() {
     };
   }, []);
 
-  // ── Sync inputs → RF state ────────────────────────────────────────────────
+  // ── Sync scene → ReactFlow state ─────────────────────────────────────────
 
   useEffect(() => {
-    const { nodes: autoNodes, edges: autoEdges } = buildAutoLayout(inputs);
+    const { nodes: autoNodes, edges: autoEdges } = buildAutoLayout(scene);
     const autoIds = new Set(autoNodes.map(n => n.id));
 
     if (edgeModeRef.current !== "manual") {
       setRfNodes(autoNodes);
       setRfEdges(autoEdges);
     } else {
-      // Keep surviving nodes (with current RF positions), add new ones
       setRfNodes(prev => {
         const surviving = prev.filter(n => autoIds.has(n.id));
         const survivingIds = new Set(surviving.map(n => n.id));
         const added = autoNodes.filter(n => !survivingIds.has(n.id));
         return [...surviving, ...added];
       });
-      // Remove edges whose endpoints no longer exist
       setRfEdges(prev => prev.filter(e => autoIds.has(e.source) && autoIds.has(e.target)));
     }
-  }, [inputs, buildAutoLayout, setRfNodes, setRfEdges]);
+  }, [scene, buildAutoLayout, setRfNodes, setRfEdges]);
 
-  // ── hasManualEdits ────────────────────────────────────────────────────────
+  // ── Manual-edit guard ─────────────────────────────────────────────────────
 
   const hasManualEdits =
     edgeMode === "manual" || Object.keys(positionsRef.current).length > 0;
 
-  const applyInputChange = useCallback((newInputs: CameraInput[]) => {
+  const applySceneChange = useCallback((newScene: Scene) => {
     if (hasManualEdits) {
-      setPendingInputs(newInputs);
+      setPendingScene(newScene);
     } else {
-      setInputs(newInputs);
+      setScene(newScene);
     }
   }, [hasManualEdits]);
 
-  // ── Node changes: save positions on drag end ──────────────────────────────
+  // ── Node changes: persist drag positions ─────────────────────────────────
 
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
     onNodesChange0(changes);
@@ -134,7 +134,7 @@ export default function App() {
     }
   }, [onNodesChange0]);
 
-  // ── Edge changes: detect deletions → manual mode ──────────────────────────
+  // ── Edge changes ──────────────────────────────────────────────────────────
 
   const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
     onEdgesChange0(changes);
@@ -143,7 +143,7 @@ export default function App() {
     }
   }, [onEdgesChange0]);
 
-  // ── Connect: drag from handle to handle ──────────────────────────────────
+  // ── Connect (drag between handles) ───────────────────────────────────────
 
   const handleConnect = useCallback((connection: Connection) => {
     setEdgeMode("manual");
@@ -172,7 +172,7 @@ export default function App() {
     }, eds));
   }, [rfNodes, addToast, setRfEdges]);
 
-  // ── Reconnect: drag edge endpoint to new port ─────────────────────────────
+  // ── Reconnect (drag existing edge endpoint) ───────────────────────────────
 
   const handleReconnect: OnReconnect<Edge> = useCallback((oldEdge, newConnection) => {
     setEdgeMode("manual");
@@ -220,96 +220,48 @@ export default function App() {
     savePositions({});
     setEdgeMode("auto");
     edgeModeRef.current = "auto";
-    const { nodes, edges } = buildAutoLayout(inputs);
+    const { nodes, edges } = buildAutoLayout(scene);
     setRfNodes(nodes);
     setRfEdges(edges);
-    setPendingInputs(null);
-  }, [inputs, buildAutoLayout, setRfNodes, setRfEdges]);
+    setPendingScene(null);
+  }, [scene, buildAutoLayout, setRfNodes, setRfEdges]);
 
-  // ── Warning modal handlers ────────────────────────────────────────────────
+  // ── Warning modal ─────────────────────────────────────────────────────────
 
   const handleRegenerateAll = useCallback(() => {
-    if (!pendingInputs) return;
+    if (!pendingScene) return;
     positionsRef.current = {};
     savePositions({});
     setEdgeMode("auto");
-    setInputs(pendingInputs);
-    setPendingInputs(null);
-  }, [pendingInputs]);
+    setScene(pendingScene);
+    setPendingScene(null);
+  }, [pendingScene]);
 
   const handleKeepManual = useCallback(() => {
-    if (!pendingInputs) return;
-    setInputs(pendingInputs);
-    setPendingInputs(null);
-  }, [pendingInputs]);
+    if (!pendingScene) return;
+    setScene(pendingScene);
+    setPendingScene(null);
+  }, [pendingScene]);
 
-  const handleCancelModal = useCallback(() => setPendingInputs(null), []);
-
-  // ── Camera handlers ───────────────────────────────────────────────────────
-
-  const handleAddCam = useCallback(() => {
-    const id = String(nextCamId++);
-    applyInputChange([...inputs, { id, model: "FX6", wireless: false, monitors: [] }]);
-  }, [inputs, applyInputChange]);
-
-  const handleChangeCam = useCallback(
-    (id: string, field: keyof CameraInput, value: unknown) => {
-      applyInputChange(inputs.map(inp => inp.id === id ? { ...inp, [field]: value } : inp));
-    },
-    [inputs, applyInputChange]
-  );
-
-  const handleRemoveCam = useCallback((id: string) => {
-    applyInputChange(inputs.filter(inp => inp.id !== id));
-  }, [inputs, applyInputChange]);
-
-  // ── Monitor handlers ──────────────────────────────────────────────────────
-
-  const handleAddMonitor = useCallback((cameraId: string) => {
-    const id = `m${nextMonId++}`;
-    const newMon: MonitorInput = { id, model: "smallhd_cine7", role: "director" };
-    applyInputChange(inputs.map(inp =>
-      inp.id === cameraId ? { ...inp, monitors: [...inp.monitors, newMon] } : inp
-    ));
-  }, [inputs, applyInputChange]);
-
-  const handleChangeMonitor = useCallback(
-    (cameraId: string, monitorId: string, changes: Partial<MonitorInput>) => {
-      applyInputChange(inputs.map(inp =>
-        inp.id === cameraId
-          ? { ...inp, monitors: inp.monitors.map(m => m.id === monitorId ? { ...m, ...changes } : m) }
-          : inp
-      ));
-    },
-    [inputs, applyInputChange]
-  );
-
-  const handleRemoveMonitor = useCallback((cameraId: string, monitorId: string) => {
-    applyInputChange(inputs.map(inp =>
-      inp.id === cameraId
-        ? { ...inp, monitors: inp.monitors.filter(m => m.id !== monitorId) }
-        : inp
-    ));
-  }, [inputs, applyInputChange]);
+  const handleCancelModal = useCallback(() => setPendingScene(null), []);
 
   const selectedEdge = selectedEdgeId
     ? rfEdges.find(e => e.id === selectedEdgeId) ?? null
     : null;
 
   return (
-    <div style={{ display: "flex", width: "100vw", height: "100vh", background: "#0f172a" }}>
-      <ControlPanel
-        inputs={inputs}
-        onAdd={handleAddCam}
-        onChange={handleChangeCam}
-        onRemove={handleRemoveCam}
-        onAddMonitor={handleAddMonitor}
-        onChangeMonitor={handleChangeMonitor}
-        onRemoveMonitor={handleRemoveMonitor}
-        onResetLayout={handleResetLayout}
-      />
+    <div style={{
+      display: "flex",
+      width: "100vw",
+      height: "100vh",
+      fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
+      background: "#F5F5F7",
+    }}>
+      {/* Left: Equipment Library */}
+      <EquipmentLibrary />
 
-      <div style={{ flex: 1, position: "relative" }}>
+      {/* Centre: Canvas */}
+      <div style={{ flex: 1, position: "relative", background: "#FAFAFA" }}>
         <ReactFlow
           nodes={rfNodes}
           edges={rfEdges}
@@ -325,14 +277,32 @@ export default function App() {
           deleteKeyCode="Delete"
           reconnectRadius={20}
           fitView
-          fitViewOptions={{ padding: 0.25 }}
+          fitViewOptions={{ padding: 0.2 }}
           proOptions={{ hideAttribution: true }}
+          style={{ background: "#FAFAFA" }}
         >
-          <Background color="#1e293b" gap={20} />
-          <Controls style={{ background: "#1e293b", border: "1px solid #334155" }} />
+          <Background color="rgba(0,0,0,0.05)" gap={20} />
+          <Controls style={{
+            background: "#FFFFFF",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: 8,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+          }} />
           <MiniMap
-            nodeColor={() => "#334155"}
-            style={{ background: "#1e293b", border: "1px solid #334155" }}
+            nodeColor={n => {
+              const t = (n.data?.equipment as { type?: string } | undefined)?.type;
+              const m: Record<string, string> = {
+                camera: "#30d158", monitor: "#8e8e93",
+                wireless_tx: "#ff9f0a", wireless_rx: "#ff9f0a",
+                recorder: "#bf5af2",
+              };
+              return m[t ?? ""] ?? "#8e8e93";
+            }}
+            style={{
+              background: "#FFFFFF",
+              border: "1px solid rgba(0,0,0,0.08)",
+              borderRadius: 8,
+            }}
           />
         </ReactFlow>
 
@@ -349,24 +319,35 @@ export default function App() {
         {/* Cable legend */}
         <div style={{
           position: "absolute", bottom: 16, right: 16,
-          background: "#1e293b", border: "1px solid #334155",
-          borderRadius: 6, padding: "9px 13px",
-          display: "flex", flexDirection: "column", gap: 6,
+          background: "#FFFFFF",
+          border: "1px solid rgba(0,0,0,0.08)",
+          borderRadius: 8,
+          padding: "8px 12px",
+          display: "flex", flexDirection: "column", gap: 5,
           pointerEvents: "none",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+          zIndex: 10,
         }}>
-          <span style={{ color: "#64748b", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>
+          <span style={{ color: "#86868b", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>
             Cable
           </span>
           {LEGEND.map(({ label, color }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, color: "#c8c8c8", fontSize: 12 }}>
-              <div style={{ width: 24, height: 2.5, background: color, borderRadius: 2 }} />
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, color: "#1d1d1f", fontSize: 11 }}>
+              <div style={{ width: 20, height: 2.5, background: color, borderRadius: 2 }} />
               {label}
             </div>
           ))}
         </div>
       </div>
 
-      {pendingInputs !== null && (
+      {/* Right: Scene Panel */}
+      <ScenePanel
+        scene={scene}
+        onChange={applySceneChange}
+        onResetLayout={handleResetLayout}
+      />
+
+      {pendingScene !== null && (
         <WarningModal
           onRegenerate={handleRegenerateAll}
           onKeep={handleKeepManual}

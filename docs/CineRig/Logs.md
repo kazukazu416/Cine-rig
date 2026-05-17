@@ -1,3 +1,40 @@
+## 2026-05-17 (6)
+
+### Phase 2: UI再設計完了
+
+**3カラムレイアウト構築:**
+- 左: `EquipmentLibrary.tsx`（新規）— カテゴリ別機材ブラウザ + 検索ボックス（カメラ12機種・モニター22機種・ワイヤレス16機種・レコーダー2機種）
+- 中央: React Flow キャンバス（ライトテーマ #FAFAFA）
+- 右: `ScenePanel.tsx`（新規）— Scene構成パネル
+
+**ScenePanel 機能:**
+- カメラセクション: 追加・削除・機種選択
+- モニターセクション: 追加・削除・機種/役割/カメラ割当
+- ワイヤレスセクション: TX/RX機種選択・送信元カメラ選択・接続先モニターチェックボックス
+- レコーダーセクション: プレースホルダー
+
+**generateFromScene() 接続:**
+- `App.tsx` を Scene状態ベースに完全書き換え
+- `setupToFlow.ts` に `sceneToFlow(setup, scene)` 追加
+- Scene変更 → リアルタイム配線図更新
+
+**Design.md準拠デザイン更新:**
+- `EquipmentNode.tsx`: ライトテーマ（#FFFFFF ノード背景・#1d1d1f テキスト）
+- `EdgePanel.tsx`: ライトテーマ（#FFFFFF 背景）
+- アクセント #005BA6 / 角丸 7-8px / フラット影
+- キャンバス背景 #FAFAFA / MiniMap・Controls も白テーマ
+
+**既存機能維持確認:**
+- 手動配線モード（ドラッグ接続・再接続）
+- ノード自由配置（位置 localStorage 保存）
+- エッジ種類変更・削除（EdgePanel）
+- 手動編集警告モーダル（WarningModal）
+- Toast通知
+
+- `npm run build` エラーなし / `npm run demo` 正常動作
+
+---
+
 ## 2026-05-17 (5)
 
 ### Phase 1: データモデル+ロジック完了
