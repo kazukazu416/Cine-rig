@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DB, MONITOR_MODELS, CONVERTER_MODELS, MULTIVIEWER_MODELS, type CameraModelId, type EquipmentModelId } from "./equipmentDB";
+import { DB, CAMERA_GROUPS, CAMERA_IDS, MONITOR_MODELS, CONVERTER_MODELS, MULTIVIEWER_MODELS, type CameraModelId, type EquipmentModelId } from "./equipmentDB";
 
 const C = {
   bg:        "#FFFFFF",
@@ -13,12 +13,7 @@ const C = {
   accent:    "#005BA6",
 } as const;
 
-const CAMERA_IDS: CameraModelId[] = [
-  "fx6", "fx3", "fx9",
-  "burano", "venice2", "a7siii", "a7iv",
-  "alexa_mini_lf", "v_raptor",
-  "c70", "c300_mkiii", "ursa_mini_pro_12k",
-];
+// CAMERA_IDS and CAMERA_GROUPS imported from equipmentDB
 
 const WIRELESS_IDS: EquipmentModelId[] = [
   "wireless_tx", "wireless_rx",
@@ -204,7 +199,32 @@ export function EquipmentLibrary() {
               />
               {isOpen && (
                 <div style={{ padding: "4px 2px", background: C.bg }}>
-                  {filtered.map(id => <LibraryItem key={id} modelId={id} />)}
+                  {label === "カメラ" ? (
+                    CAMERA_GROUPS.map(({ manufacturer, ids: groupIds }) => {
+                      const visible = q
+                        ? groupIds.filter(id => {
+                            const t = DB[id as EquipmentModelId];
+                            return t && (t.name.toLowerCase().includes(q) || (t.spec ?? "").toLowerCase().includes(q));
+                          })
+                        : groupIds;
+                      if (visible.length === 0) return null;
+                      return (
+                        <div key={manufacturer}>
+                          <div style={{
+                            fontSize: 9, fontWeight: 700, color: C.textLight,
+                            padding: "5px 10px 1px",
+                            letterSpacing: 0.7,
+                            textTransform: "uppercase",
+                          }}>
+                            {manufacturer}
+                          </div>
+                          {visible.map(id => <LibraryItem key={id} modelId={id as EquipmentModelId} />)}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    filtered.map(id => <LibraryItem key={id} modelId={id} />)
+                  )}
                 </div>
               )}
             </div>

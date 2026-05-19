@@ -6,7 +6,8 @@ import type {
 } from "./types";
 import { SCENE_ROLE_LABELS, CABLE_COLORS } from "./types";
 import {
-  DB, MONITOR_MODELS, CONVERTER_MODELS, MULTIVIEWER_MODELS, outputPortOptions, inputPortOptions,
+  DB, CAMERA_GROUPS, CAMERA_IDS, MONITOR_MODELS, CONVERTER_MODELS, MULTIVIEWER_MODELS,
+  outputPortOptions, inputPortOptions,
   type CameraModelId, type EquipmentModelId, type WirelessModelId,
 } from "./equipmentDB";
 import { Modal } from "./Modal";
@@ -27,12 +28,7 @@ const C = {
   danger:      "#d72b3f",
 } as const;
 
-const CAMERA_IDS: CameraModelId[] = [
-  "fx6", "fx3", "fx9",
-  "burano", "venice2", "a7siii", "a7iv",
-  "alexa_mini_lf", "v_raptor",
-  "c70", "c300_mkiii", "ursa_mini_pro_12k",
-];
+// CAMERA_IDS and CAMERA_GROUPS imported from equipmentDB
 
 const WIRELESS_TX_IDS: WirelessModelId[] = [
   "wireless_tx",
@@ -413,8 +409,12 @@ function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlig
       </div>
       <div style={{ padding: "7px 10px", display: "flex", flexDirection: "column", gap: 5 }}>
         <Sel value={cam.model} onChange={v => onChange({ ...cam, model: v })}>
-          {CAMERA_IDS.map(id => (
-            <option key={id} value={id}>{DB[id]?.name ?? id}</option>
+          {CAMERA_GROUPS.map(g => (
+            <optgroup key={g.manufacturer} label={g.manufacturer}>
+              {g.ids.map(id => (
+                <option key={id} value={id}>{DB[id]?.name ?? id}</option>
+              ))}
+            </optgroup>
           ))}
         </Sel>
 
@@ -1910,8 +1910,12 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
           <div>
             <div style={ML}>機種</div>
             <Sel value={newCamModel} onChange={setNewCamModel}>
-              {CAMERA_IDS.map(id => (
-                <option key={id} value={id}>{DB[id]?.name ?? id}</option>
+              {CAMERA_GROUPS.map(g => (
+                <optgroup key={g.manufacturer} label={g.manufacturer}>
+                  {g.ids.map(id => (
+                    <option key={id} value={id}>{DB[id]?.name ?? id}</option>
+                  ))}
+                </optgroup>
               ))}
             </Sel>
           </div>

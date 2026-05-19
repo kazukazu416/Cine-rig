@@ -1,3 +1,18 @@
+## 2026-05-19 (6)
+
+### カメラリストをUIに反映 + メーカーグループ表示
+
+- `equipmentDB.ts`: `CAMERA_GROUPS`（メーカー別グループ）・`CAMERA_IDS`（フラット）をエクスポート
+- `ScenePanel.tsx`: ローカル `CAMERA_IDS` 削除 → `CAMERA_GROUPS` インポートに変更
+  - カメラカードのモデルセレクター → `<optgroup>` でメーカー別表示
+  - 「カメラを追加」モーダルも同様
+- `EquipmentLibrary.tsx`: カメラセクションをメーカーグループ（Sony / ARRI / RED / Canon / Blackmagic）で表示
+  - 検索時もグループ単位でフィルタリング
+
+対応カメラ数: 27機種（既存12 + 新規15）
+
+---
+
 ## 2026-05-19 (5)
 
 ### コンバーター・マルチビューワーのUI実装 + types.ts拡張

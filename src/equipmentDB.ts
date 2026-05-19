@@ -2006,6 +2006,15 @@ export function outputPortOptions(modelId: EquipmentModelId): { idx: number; lab
 
 // ── Model lists ───────────────────────────────────────────────────────────
 
+export const CAMERA_GROUPS: { manufacturer: string; ids: CameraModelId[] }[] = [
+  { manufacturer: "Sony",       ids: ["fx6", "fx3", "fx9", "burano", "venice2", "venice1", "a7siii", "a7iv"] },
+  { manufacturer: "ARRI",       ids: ["alexa_mini_lf", "alexa_35", "alexa_mini", "amira", "alexa_lf"] },
+  { manufacturer: "RED",        ids: ["v_raptor", "v_raptor_xl", "komodo_6k", "komodo_x"] },
+  { manufacturer: "Canon",      ids: ["c70", "c300_mkiii", "c300_mkii", "c500_mkii", "eos_r5c"] },
+  { manufacturer: "Blackmagic", ids: ["ursa_mini_pro_12k", "bmpcc_6k_g2", "bmpcc_6k_pro", "bm_cinema_6k"] },
+];
+export const CAMERA_IDS: CameraModelId[] = CAMERA_GROUPS.flatMap(g => g.ids);
+
 export const CONVERTER_MODELS: ConverterModelId[] = [
   "bm_mini_conv_hdmi_sdi_6g",
   "bm_mini_conv_sdi_hdmi_6g",
