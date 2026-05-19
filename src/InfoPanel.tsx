@@ -52,6 +52,30 @@ function validate(scene: Scene, edges: Edge[]) {
     }
   }
 
+  // ── Converters: error if no input connection ─────────────────────────────
+  for (const conv of scene.converters ?? []) {
+    const prefix = `${conv.id}_${conv.model}_p`;
+    const hasEdge = edges.some(
+      e => e.targetHandle?.startsWith(prefix) && e.data?.cableType !== "WIRELESS"
+    );
+    if (!conv.sourceId && !hasEdge) {
+      const name = DB[conv.model as EquipmentModelId]?.name ?? conv.model;
+      errors.push({ key: conv.id, msg: `${name}（コンバーター）が未接続です` });
+    }
+  }
+
+  // ── Multiviewers: error if no input connection ────────────────────────────
+  for (const mv of scene.multiviewers ?? []) {
+    const prefix = `${mv.id}_${mv.model}_p`;
+    const hasEdge = edges.some(
+      e => e.targetHandle?.startsWith(prefix) && e.data?.cableType !== "WIRELESS"
+    );
+    if (!mv.sourceId && !hasEdge) {
+      const name = DB[mv.model as EquipmentModelId]?.name ?? mv.model;
+      errors.push({ key: mv.id, msg: `${name}（マルチビューワー）が未接続です` });
+    }
+  }
+
   // ── Wireless TX: warn if no non-WIRELESS input edge ───────────────────────
   for (const ws of scene.wirelessSets) {
     const txModel  = (ws.txModel ?? "wireless_tx") as EquipmentModelId;
