@@ -13,7 +13,7 @@ export interface SpecPort {
 export interface EquipmentSpec {
   manufacturer: string;
   model: string;
-  category: "camera" | "monitor" | "wireless_tx" | "wireless_rx" | "recorder";
+  category: "camera" | "monitor" | "wireless_tx" | "wireless_rx" | "recorder" | "converter" | "multiviewer";
   size?: number | null;
   resolution?: string | null;
   brightness?: number | null;
@@ -38,11 +38,12 @@ export interface EquipmentTemplate {
 
 export type CameraModelId =
   | "fx6" | "fx3" | "fx9"
-  | "burano" | "venice2" | "a7siii" | "a7iv"
-  | "alexa_mini_lf"
-  | "v_raptor"
-  | "c70" | "c300_mkiii"
-  | "ursa_mini_pro_12k";
+  | "burano" | "venice2" | "venice1" | "a7siii" | "a7iv"
+  | "alexa_mini_lf" | "alexa_35" | "alexa_mini" | "amira" | "alexa_lf"
+  | "v_raptor" | "v_raptor_xl"
+  | "komodo_6k" | "komodo_x"
+  | "c70" | "c300_mkiii" | "c300_mkii" | "c500_mkii" | "eos_r5c"
+  | "ursa_mini_pro_12k" | "bmpcc_6k_g2" | "bmpcc_6k_pro" | "bm_cinema_6k";
 
 export type RecorderModelId =
   | "atomos_shogun_connect"
@@ -58,11 +59,29 @@ export type WirelessModelId =
   | "hollyland_pyroh_tx"      | "hollyland_pyroh_rx"
   | "accsoon_cineview_se_tx"  | "accsoon_cineview_se_rx";
 
+export type ConverterModelId =
+  | "bm_mini_conv_hdmi_sdi_6g"
+  | "bm_mini_conv_sdi_hdmi_6g"
+  | "bm_mini_conv_sdi_dist"
+  | "bm_teranex_hdmi_sdi_12g"
+  | "bm_teranex_sdi_hdmi_12g"
+  | "decimator_md_hx"
+  | "decimator_md_lx";
+
+export type MultiviewerModelId =
+  | "bm_multiview_4hd"
+  | "bm_multiview_4"
+  | "bm_multiview_16"
+  | "decimator_dmon_4s"
+  | "decimator_dmon_16s";
+
 export type EquipmentModelId =
   | CameraModelId
   | WirelessModelId
   | MonitorModelId
-  | RecorderModelId;
+  | RecorderModelId
+  | ConverterModelId
+  | MultiviewerModelId;
 
 // ── DB ────────────────────────────────────────────────────────────────────
 
@@ -317,6 +336,306 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
     ports: [
       { type: "SDI", direction: "out" },
       { type: "SDI", direction: "out" },
+    ],
+  },
+
+  // ── ARRI ─────────────────────────────────────────────────────────────────
+
+  alexa_35: {
+    name: "ARRI ALEXA 35",
+    type: "camera",
+    spec: "Super35 4K / 2×12G-SDI out",
+    richSpec: {
+      manufacturer: "ARRI", model: "ALEXA 35", category: "camera",
+      size: null, resolution: "4.6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI", standard: "12G", count: 2 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "2x BNC 12G-SDI. SDI 2 can be configured as return input. No HDMI.",
+    },
+    ports: [
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  alexa_mini: {
+    name: "ARRI ALEXA Mini",
+    type: "camera",
+    spec: "Super35 / 2×SDI out (up to 6G)",
+    richSpec: {
+      manufacturer: "ARRI", model: "ALEXA Mini", category: "camera",
+      size: null, resolution: "3.2K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI", standard: "3G", count: 1 },
+        { type: "SDI", standard: "6G", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "SDI 1: up to 3G (HD 444). SDI 2: up to 6G (UHD 422). No HDMI.",
+    },
+    ports: [
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  amira: {
+    name: "ARRI AMIRA",
+    type: "camera",
+    spec: "Super35 / 2×SDI out (up to 6G)",
+    richSpec: {
+      manufacturer: "ARRI", model: "AMIRA", category: "camera",
+      size: null, resolution: "3.2K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI", standard: "3G", count: 1 },
+        { type: "SDI", standard: "6G", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "SDI 1: up to 3G (HD 444). SDI 2: up to 6G (UHD 422). No HDMI.",
+    },
+    ports: [
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  alexa_lf: {
+    name: "ARRI ALEXA LF",
+    type: "camera",
+    spec: "Large-format / 4×6G-SDI MON OUT",
+    richSpec: {
+      manufacturer: "ARRI", model: "ALEXA LF", category: "camera",
+      size: null, resolution: "4.5K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI", standard: "6G", count: 4 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "4x BNC MON OUT (6G-SDI). No HDMI. Predecessor to ALEXA Mini LF.",
+    },
+    ports: [
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  // ── Sony VENICE 1 ────────────────────────────────────────────────────────
+
+  venice1: {
+    name: "Sony VENICE",
+    type: "camera",
+    spec: "Full-frame 6K / 4×SDI + HDMI out",
+    richSpec: {
+      manufacturer: "Sony", model: "VENICE", category: "camera",
+      size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI",  standard: "12G", count: 2 },
+        { type: "SDI",  standard: "3G",  count: 2 },
+        { type: "HDMI", standard: "2.0", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "SDI 1/2: 12G/6G/3G switchable. SDI 3/4: 3G monitoring. 1x HDMI A. Requires AXS-R7 for RAW.",
+    },
+    ports: [
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  // ── RED ──────────────────────────────────────────────────────────────────
+
+  v_raptor_xl: {
+    name: "RED V-Raptor XL",
+    type: "camera",
+    spec: "Full-frame 8K / 3×12G-SDI + 1×3G-SDI",
+    richSpec: {
+      manufacturer: "RED", model: "V-Raptor XL", category: "camera",
+      size: null, resolution: "8K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI", standard: "12G", count: 3 },
+        { type: "SDI", standard: "3G",  count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "3x 12G-SDI rear BNC + 1x 3G-SDI front (for EVF). No HDMI on body.",
+    },
+    ports: [
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  komodo_6k: {
+    name: "RED KOMODO 6K",
+    type: "camera",
+    spec: "Super35 6K / 1×12G-SDI out",
+    richSpec: {
+      manufacturer: "RED", model: "KOMODO 6K", category: "camera",
+      size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI", standard: "12G", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "internal",
+      notes: "1x multi-standard 12G/6G/3G/1.5G-SDI BNC. No HDMI. USB-C for accessories.",
+    },
+    ports: [
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  komodo_x: {
+    name: "RED KOMODO-X 6K",
+    type: "camera",
+    spec: "Super35 6K / 1×12G-SDI out",
+    richSpec: {
+      manufacturer: "RED", model: "KOMODO-X 6K", category: "camera",
+      size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI", standard: "12G", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "internal",
+      notes: "1x multi-standard 12G/6G/3G/1.5G-SDI BNC. No HDMI. Enhanced cooling vs KOMODO.",
+    },
+    ports: [
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  // ── Canon ────────────────────────────────────────────────────────────────
+
+  c300_mkii: {
+    name: "Canon EOS C300 Mark II",
+    type: "camera",
+    spec: "Super35 / 2×3G-SDI + HDMI out",
+    richSpec: {
+      manufacturer: "Canon", model: "EOS C300 Mark II", category: "camera",
+      size: null, resolution: "4K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI",  standard: "3G", count: 2 },
+        { type: "HDMI", standard: "2.0", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "2x BNC 3G-SDI (SDI OUT / MON.) + 1x HDMI. Dual 3G for 4K RAW output.",
+    },
+    ports: [
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  c500_mkii: {
+    name: "Canon EOS C500 Mark II",
+    type: "camera",
+    spec: "Full-frame / 2×12G-SDI + HDMI out",
+    richSpec: {
+      manufacturer: "Canon", model: "EOS C500 Mark II", category: "camera",
+      size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "SDI",  standard: "12G", count: 2 },
+        { type: "HDMI", standard: "2.0", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "V-mount",
+      notes: "2x BNC 12G-SDI (SDI OUT + MON.) + 1x HDMI. Both SDI support 12G/6G/3G.",
+    },
+    ports: [
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  eos_r5c: {
+    name: "Canon EOS R5 C",
+    type: "camera",
+    spec: "Full-frame 8K / HDMI out only",
+    richSpec: {
+      manufacturer: "Canon", model: "EOS R5 C", category: "camera",
+      size: null, resolution: "8K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "HDMI", standard: "2.0", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "internal",
+      notes: "Full-size HDMI A. 8K RAW output to external recorder. No SDI.",
+    },
+    ports: [
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  // ── Blackmagic Pocket / Cinema ───────────────────────────────────────────
+
+  bmpcc_6k_g2: {
+    name: "Blackmagic BMPCC 6K G2",
+    type: "camera",
+    spec: "Super35 6K / HDMI out only",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Pocket Cinema Camera 6K G2", category: "camera",
+      size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "HDMI", standard: "2.0", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "internal",
+      notes: "Full-size HDMI 2.0. Up to 1080p60 monitoring output. No SDI.",
+    },
+    ports: [
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  bmpcc_6k_pro: {
+    name: "Blackmagic BMPCC 6K Pro",
+    type: "camera",
+    spec: "Super35 6K / HDMI out only",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Pocket Cinema Camera 6K Pro", category: "camera",
+      size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "HDMI", standard: "2.0", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "internal",
+      notes: "Full-size HDMI 2.0. ND filters built-in. Up to 1080p60 monitoring output. No SDI.",
+    },
+    ports: [
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  bm_cinema_6k: {
+    name: "Blackmagic Cinema Camera 6K",
+    type: "camera",
+    spec: "Full-frame 6K / HDMI out only",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Cinema Camera 6K", category: "camera",
+      size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
+      inputs: [],
+      outputs: [
+        { type: "HDMI", standard: "2.0", count: 1 },
+      ],
+      powerConsumption: null, batteryMount: "internal",
+      notes: "Full-size HDMI 2.0. Full-frame sensor with L-mount. Up to 1080p60 monitoring. No SDI.",
+    },
+    ports: [
+      { type: "HDMI", direction: "out" },
     ],
   },
 
@@ -1302,6 +1621,339 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
     ports: [
       { type: "SDI",  direction: "in" },
       { type: "HDMI", direction: "in" },
+      { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  // ── Blackmagic Design Converters ─────────────────────────────────────────
+
+  bm_mini_conv_hdmi_sdi_6g: {
+    name: "BM Mini Conv HDMI to SDI 6G",
+    type: "converter",
+    spec: "HDMI 2.0 in · 2×6G-SDI out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Mini Converter HDMI to SDI 6G",
+      category: "converter",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "HDMI", standard: "2.0", count: 1 }],
+      outputs: [{ type: "SDI",  standard: "6G",  count: 2 }],
+      powerConsumption: null, batteryMount: null,
+      notes: "Converts HDMI to dual 6G-SDI. Supports SD/HD/Ultra HD up to 2160p30. W-CONM-27.",
+    },
+    ports: [
+      { type: "HDMI", direction: "in" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+    ],
+  },
+
+  bm_mini_conv_sdi_hdmi_6g: {
+    name: "BM Mini Conv SDI to HDMI 6G",
+    type: "converter",
+    spec: "6G-SDI in · HDMI out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Mini Converter SDI to HDMI 6G",
+      category: "converter",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI",  standard: "6G",  count: 1 }],
+      outputs: [{ type: "HDMI", standard: null,   count: 1 }],
+      powerConsumption: null, batteryMount: null,
+      notes: "Converts SD/HD/6G-SDI to HDMI. Secondary ALT SDI input for auto-failover. Source URL: blackmagicdesign.com/products/miniconverters/techspecs",
+    },
+    ports: [
+      { type: "SDI",  direction: "in" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  bm_mini_conv_sdi_dist: {
+    name: "BM Mini Conv SDI Distribution",
+    type: "converter",
+    spec: "3G-SDI in · 8×3G-SDI out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Mini Converter SDI Distribution",
+      category: "converter",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI", standard: "3G", count: 1 }],
+      outputs: [{ type: "SDI", standard: "3G", count: 8 }],
+      powerConsumption: null, batteryMount: null,
+      notes: "1 SD/HD/3G-SDI input distributed to 8 re-clocked outputs. SD/HD formats up to 1080p60. W-CONM-13.",
+    },
+    ports: [
+      { type: "SDI", direction: "in" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+      { type: "SDI", direction: "out" },
+    ],
+  },
+
+  bm_teranex_hdmi_sdi_12g: {
+    name: "BM Teranex Mini HDMI to SDI 12G",
+    type: "converter",
+    spec: "HDMI 2.0 in · 2×12G-SDI out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Teranex Mini HDMI to SDI 12G",
+      category: "converter",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "HDMI", standard: "2.0", count: 1 }],
+      outputs: [{ type: "SDI",  standard: "12G", count: 2 }],
+      powerConsumption: null, batteryMount: null,
+      notes: "Converts HDMI 2.0 (up to 2160p60) to dual 12G-SDI. Rack-mount, Ethernet control. Optional optical SFP. W-TERAMIN-02.",
+    },
+    ports: [
+      { type: "HDMI", direction: "in" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+    ],
+  },
+
+  bm_teranex_sdi_hdmi_12g: {
+    name: "BM Teranex Mini SDI to HDMI 12G",
+    type: "converter",
+    spec: "12G-SDI in · HDMI 2.0 out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "Teranex Mini SDI to HDMI 12G",
+      category: "converter",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI",  standard: "12G", count: 1 }],
+      outputs: [{ type: "HDMI", standard: "2.0", count: 1 }],
+      powerConsumption: null, batteryMount: null,
+      notes: "Converts SD/HD/2K/4K 12G-SDI to HDMI 2.0 (up to 2160p60). Rack-mount, Ethernet control. Source URL: blackmagicdesign.com/products/teranexmini/techspecs",
+    },
+    ports: [
+      { type: "SDI",  direction: "in" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  // ── Blackmagic Design Multiviewers ───────────────────────────────────────
+
+  bm_multiview_4hd: {
+    name: "BM MultiView 4 HD",
+    type: "multiviewer",
+    spec: "4×HD-SDI in · 1×HD-SDI + HDMI out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "MultiView 4 HD",
+      category: "multiviewer",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI", standard: "3G", count: 4 }],
+      outputs: [
+        { type: "SDI",  standard: "3G",  count: 1 },
+        { type: "HDMI", standard: null,  count: 1 },
+      ],
+      powerConsumption: null, batteryMount: null,
+      notes: "4×SD/HD-SDI to quad-split on 1 HDMI display. 1×HD-SDI multiview output. On-screen labels and audio meters. W-MVW-03. HDL-MULTIP3G/04HD.",
+    },
+    ports: [
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  bm_multiview_4: {
+    name: "BM MultiView 4",
+    type: "multiviewer",
+    spec: "4×6G-SDI in · 4×loop + 1×SDI + HDMI out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "MultiView 4",
+      category: "multiviewer",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI", standard: "6G", count: 4 }],
+      outputs: [
+        { type: "SDI",  standard: "6G",  count: 5 },
+        { type: "HDMI", standard: null,  count: 1 },
+      ],
+      powerConsumption: null, batteryMount: null,
+      notes: "4×SD/HD/6G-SDI with 4 loop-through outputs + 1 HD/Ultra HD SDI program output + HDMI. W-MVW-02. HDL-MULTIP3G/04.",
+    },
+    ports: [
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  bm_multiview_16: {
+    name: "BM MultiView 16",
+    type: "multiviewer",
+    spec: "16×6G-SDI in · 2×HD-SDI + 2×6G-SDI + HDMI out",
+    richSpec: {
+      manufacturer: "Blackmagic Design", model: "MultiView 16",
+      category: "multiviewer",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI", standard: "6G",  count: 16 }],
+      outputs: [
+        { type: "SDI",  standard: "6G",  count: 4 },
+        { type: "HDMI", standard: null,  count: 1 },
+      ],
+      powerConsumption: null, batteryMount: null,
+      notes: "16×SD/HD/6G-SDI inputs. Multiview outputs: 2×HD-SDI + 2×6G-SDI + 1×HDMI. 2×2/3×3/4×4 grid or SOLO. Front-panel router controls.",
+    },
+    ports: [
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
+    ],
+  },
+
+  // ── Decimator Design Converters ──────────────────────────────────────────
+
+  decimator_md_hx: {
+    name: "Decimator MD-HX",
+    type: "converter",
+    spec: "HDMI+SDI in · HDMI+4×SDI out / cross-convert",
+    richSpec: {
+      manufacturer: "Decimator Design", model: "MD-HX",
+      category: "converter",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs: [
+        { type: "HDMI", standard: null,  count: 1 },
+        { type: "SDI",  standard: "3G",  count: 1 },
+      ],
+      outputs: [
+        { type: "HDMI", standard: null,  count: 1 },
+        { type: "SDI",  standard: "3G",  count: 4 },
+      ],
+      powerConsumption: null, batteryMount: null,
+      notes: "Cross-converter with scaling and frame rate conversion. Outputs: 1×HDMI + 2×SDI loop-through + 2×SDI converted. Supports 3G Level A/B. Source URL: decimator.com/Products/MiniConverters/MD-HX/MD-HX.html",
+    },
+    ports: [
+      { type: "HDMI", direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "HDMI", direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+      { type: "SDI",  direction: "out" },
+    ],
+  },
+
+  decimator_md_lx: {
+    name: "Decimator MD-LX",
+    type: "converter",
+    spec: "HDMI+SDI in · HDMI+SDI out / bi-directional",
+    richSpec: {
+      manufacturer: "Decimator Design", model: "MD-LX",
+      category: "converter",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs: [
+        { type: "HDMI", standard: null,  count: 1 },
+        { type: "SDI",  standard: "3G",  count: 1 },
+      ],
+      outputs: [
+        { type: "HDMI", standard: null,  count: 1 },
+        { type: "SDI",  standard: "3G",  count: 1 },
+      ],
+      powerConsumption: null, batteryMount: null,
+      notes: "Bi-directional HDMI⇔SDI converter. Auto-routes single active input; simultaneous cross-conversion when both connected. Up to 1080p60. USB powered (under 2.5W). Source URL: decimator.com/Products/MiniConverters/MD-LX/MD-LX.html",
+    },
+    ports: [
+      { type: "HDMI", direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "HDMI", direction: "out" },
+      { type: "SDI",  direction: "out" },
+    ],
+  },
+
+  // ── Decimator Design Multiviewers ────────────────────────────────────────
+
+  decimator_dmon_4s: {
+    name: "Decimator DMON-4S",
+    type: "multiviewer",
+    spec: "4×3G-SDI in · 4×HDMI + SDI out",
+    richSpec: {
+      manufacturer: "Decimator Design", model: "DMON-4S",
+      category: "multiviewer",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI",  standard: "3G",  count: 4 }],
+      outputs: [
+        { type: "HDMI", standard: null,  count: 4 },
+        { type: "SDI",  standard: "3G",  count: 1 },
+      ],
+      powerConsumption: null, batteryMount: null,
+      notes: "Quad SDI→HDMI multiviewer. Each of 4 mini-HDMI outputs shows any input or quad-split. 1×SDI multiview output. Source URL: decimator.com/Products/MultiViewers/DMON-4S%20MultiViewer/DMON-4S.html",
+    },
+    ports: [
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "HDMI", direction: "out" },
+      { type: "HDMI", direction: "out" },
+      { type: "HDMI", direction: "out" },
+      { type: "HDMI", direction: "out" },
+      { type: "SDI",  direction: "out" },
+    ],
+  },
+
+  decimator_dmon_16s: {
+    name: "Decimator DMON-16S",
+    type: "multiviewer",
+    spec: "16×3G-SDI in · 1×SDI + HDMI out",
+    richSpec: {
+      manufacturer: "Decimator Design", model: "DMON-16S",
+      category: "multiviewer",
+      size: null, resolution: null, brightness: null, hdr: null, recorder: false,
+      inputs:  [{ type: "SDI",  standard: "3G",  count: 16 }],
+      outputs: [
+        { type: "SDI",  standard: "3G",  count: 1 },
+        { type: "HDMI", standard: null,  count: 1 },
+      ],
+      powerConsumption: null, batteryMount: null,
+      notes: "16-channel SDI multiviewer. 1×3G-SDI + 1×HDMI output. Custom layout support. GPI tally. RS-422/485. Source URL: decimator.com/Products/MultiViewers/DMON-16S%20MultiViewer/DMON-16S.html",
+    },
+    ports: [
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
+      { type: "SDI",  direction: "in" },
       { type: "SDI",  direction: "out" },
       { type: "HDMI", direction: "out" },
     ],

@@ -1,3 +1,70 @@
+## 2026-05-19 (4)
+
+### シネマカメラ 15機種を equipmentDB に追加
+
+**調査方法:** 各公式サイト・仕様書を WebSearch/WebFetch で確認
+
+**型システム拡張:**
+- `equipmentDB.ts`: `CameraModelId` に 15 機種の ID を追加
+
+**追加機材一覧:**
+
+| ID | 機材名 | SDI出力 | HDMI出力 |
+|---|---|---|---|
+| alexa_35 | ARRI ALEXA 35 | 12G×2 | - |
+| alexa_mini | ARRI ALEXA Mini | 3G×1 + 6G×1 | - |
+| amira | ARRI AMIRA | 3G×1 + 6G×1 | - |
+| alexa_lf | ARRI ALEXA LF | 6G×4 | - |
+| venice1 | Sony VENICE | 12G×2 + 3G×2 | HDMI×1 |
+| v_raptor_xl | RED V-Raptor XL | 12G×3 + 3G×1 | - |
+| komodo_6k | RED KOMODO 6K | 12G×1 | - |
+| komodo_x | RED KOMODO-X 6K | 12G×1 | - |
+| c300_mkii | Canon EOS C300 Mark II | 3G×2 | HDMI×1 |
+| c500_mkii | Canon EOS C500 Mark II | 12G×2 | HDMI×1 |
+| eos_r5c | Canon EOS R5 C | - | HDMI×1 |
+| bmpcc_6k_g2 | Blackmagic BMPCC 6K G2 | - | HDMI×1 |
+| bmpcc_6k_pro | Blackmagic BMPCC 6K Pro | - | HDMI×1 |
+| bm_cinema_6k | Blackmagic Cinema Camera 6K | - | HDMI×1 |
+
+---
+
+## 2026-05-19 (3)
+
+### コンバーター・マルチビューワー 12機種を equipmentDB に追加
+
+**調査方法:** 各公式サイトを WebFetch で確認（Blackmagic Design 公式、Decimator 公式 / B&H / coremicro）
+
+**型システム拡張:**
+- `types.ts`: `Equipment.type` に `"converter" | "multiviewer"` を追加
+- `equipmentDB.ts`: `EquipmentSpec.category` に同じ値を追加
+- `equipmentDB.ts`: `ConverterModelId` / `MultiviewerModelId` 型エイリアスを追加し `EquipmentModelId` に統合
+- `EquipmentNode.tsx`: Converter (水色 #0ea5e9) / Multiviewer (ローズ #f43f5e) のノードカラー・ラベルを追加
+
+**追加機材一覧:**
+
+| ID | 機材名 | 入力 | 出力 |
+|---|---|---|---|
+| bm_mini_conv_hdmi_sdi_6g | BM Mini Conv HDMI to SDI 6G | HDMI×1 | 6G-SDI×2 |
+| bm_mini_conv_sdi_hdmi_6g | BM Mini Conv SDI to HDMI 6G | 6G-SDI×1 | HDMI×1 |
+| bm_mini_conv_sdi_dist | BM Mini Conv SDI Distribution | 3G-SDI×1 | 3G-SDI×8 |
+| bm_teranex_hdmi_sdi_12g | BM Teranex Mini HDMI to SDI 12G | HDMI2.0×1 | 12G-SDI×2 |
+| bm_teranex_sdi_hdmi_12g | BM Teranex Mini SDI to HDMI 12G | 12G-SDI×1 | HDMI2.0×1 |
+| bm_multiview_4hd | BM MultiView 4 HD | 3G-SDI×4 | 3G-SDI×1 + HDMI×1 |
+| bm_multiview_4 | BM MultiView 4 | 6G-SDI×4 | 6G-SDI×5(4ループ+1) + HDMI×1 |
+| bm_multiview_16 | BM MultiView 16 | 6G-SDI×16 | 6G-SDI×4 + HDMI×1 |
+| decimator_md_hx | Decimator MD-HX | HDMI×1 + 3G-SDI×1 | HDMI×1 + 3G-SDI×4 |
+| decimator_md_lx | Decimator MD-LX | HDMI×1 + 3G-SDI×1 | HDMI×1 + 3G-SDI×1 |
+| decimator_dmon_4s | Decimator DMON-4S | 3G-SDI×4 | HDMI×4 + 3G-SDI×1 |
+| decimator_dmon_16s | Decimator DMON-16S | 3G-SDI×16 | 3G-SDI×1 + HDMI×1 |
+
+**要確認:**
+- MD-HX の SDI 出力: 「2×ループスルー + 2×変換」の計4本として記録（notes に明記）
+- MultiView 4 (non-HD) の loop-through 4本: 公式仕様通り ports[] に 5×SDI out（4ループ+1プログラム）として記録
+
+**ビルド:** エラー 0、警告 0
+
+---
+
 ## 2026-05-19 (2)
 
 ### モニターカード「接続先」UI追加
