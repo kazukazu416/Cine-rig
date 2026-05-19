@@ -1,3 +1,44 @@
+## 2026-05-20 (12)
+
+### equipmentDB.ts 消費電力 全43件調査・入力完了
+
+**対応ファイル:** src/equipmentDB.ts
+
+**調査方法:** WebSearch（公式サイト・仕様書・Newsshooter等レビュー）
+
+**確認済みで入力した機材（公式ソース）:**
+- Sony a7S III: 8W（実測7.3-7.6W, flaviutamas.com）
+- ARRI ALEXA Mini LF: 70W（69-89W MVF-2接続時, ARRI公式）
+- ARRI ALEXA LF: 130W（120-160W, ARRI公式）
+- ARRI AMIRA: 65W（52-84W MVF-1接続時, ARRI Technical Data）
+- RED V-Raptor: 65W（8K 24fps平均, RED公式Operation Guide）
+- RED V-Raptor XL: 65W（同上）
+- RED KOMODO-X: 28W（6K 24fps, RED公式Operation Guide）
+- Canon EOS C300 Mark II: 20W（Canon公式仕様書 14.4V時）
+- Teradek Bolt 6 XT TX: 20W / RX: 18W（Teradek公式）
+- Teradek Bolt 6 LT RX: 11W（Teradek公式）
+- Hollyland Pyro H TX: 7W / RX: 4W（Hollyland公式/Newsshooter）
+- SmallHD Cine 7: 18W（SmallHD仕様 18.2W max）
+- SmallHD Indie 7: 17W（SmallHD公式 17.3W）
+- SmallHD Indie 5: 12W（SmallHD製品ページ）
+- SmallHD 702 Bright: 11W（SmallHD公式）
+- Atomos Shogun 7: 33W（Atomos公式スペックシート）
+- Atomos Sumo 19: 75W（Atomosマニュアル）
+- Decimator DMON-4S: 6W（Decimator公式ブローシャー）
+- FSI DM240W: 29W @ 100nit / 最大48W（FSI公式）
+
+**推測値で入力した機材（notes に「推測値」明記）:**
+- Sony a7 IV: 9W / Canon EOS R5 C: 18W / BM BMPCC 6K Pro: 14W / BM Cinema Camera 6K: 20W
+- SmallHD Cine 5: 14W / Ultra 7: 22W / Ultra 5: 15W / Ultra 10: 30W / 702 Touch: 11W
+- Atomos Shogun Ultra: 35W / Ninja Ultra: 10W / Shogun Connect: 15W
+- Teradek Bolt 6 LT TX: 13W / Bolt 500 XT TX: 8W / Bolt 500 XT RX: 7W
+- Accsoon CineView SE TX: 5W / RX: 3W
+- Decimator DMON-16S: 20W
+
+**結果:** 全43件の null を解消。0件の null が残留。ビルド正常。
+
+---
+
 ## 2026-05-20 (11)
 
 ### バッテリー計算UI実装
