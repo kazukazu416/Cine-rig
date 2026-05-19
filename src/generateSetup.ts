@@ -24,5 +24,13 @@ export function generateFromScene(scene: Scene): Setup {
     equipments.push(instantiate(rec.model as EquipmentModelId, rec.id));
   }
 
+  for (const conv of scene.converters ?? []) {
+    equipments.push(instantiate(conv.model as EquipmentModelId, conv.id));
+  }
+
+  for (const mv of scene.multiviewers ?? []) {
+    equipments.push(instantiate(mv.model as EquipmentModelId, mv.id));
+  }
+
   return { equipments, connections: [] };
 }

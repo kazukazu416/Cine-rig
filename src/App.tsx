@@ -31,6 +31,10 @@ function resolveEntityId(nodeId: string, scene: Scene): string | null {
     for (const rx of ws.rxUnits)
       if (nodeId === `${rx.id}_${rx.model}`) return ws.id;
   }
+  for (const conv of scene.converters ?? [])
+    if (nodeId === `${conv.id}_${conv.model}`) return conv.id;
+  for (const mv of scene.multiviewers ?? [])
+    if (nodeId === `${mv.id}_${mv.model}`) return mv.id;
   return null;
 }
 
@@ -66,6 +70,8 @@ const INITIAL_SCENE: Scene = {
     { id: "mon2", model: "atomos_shogun7", role: "director", cameraId: "cam1", sourceId: "ws1_rx", sourcePortIdx: 1, targetPortIdx: 0, cableType: "SDI" },
   ],
   recorders: [],
+  converters: [],
+  multiviewers: [],
 };
 
 function newProjectMeta() {
@@ -419,6 +425,7 @@ export default function App() {
                   camera: "#30d158", monitor: "#8e8e93",
                   wireless_tx: "#ff9f0a", wireless_rx: "#ff9f0a",
                   recorder: "#bf5af2",
+                  converter: "#0ea5e9", multiviewer: "#22c55e",
                 };
                 return m[t ?? ""] ?? "#8e8e93";
               }}

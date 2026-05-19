@@ -3,7 +3,7 @@ import { Position } from "@xyflow/react";
 import type { Setup, Scene, SceneMonitorRole, Equipment } from "./types";
 import { SCENE_ROLE_LABELS, CABLE_COLORS } from "./types";
 
-// Signal-flow column layout: camera → onboard → TX → RX → focus/director → client → recorder
+// Signal-flow column layout: camera → onboard → TX → RX → focus/director → client → recorder → converter/multiviewer
 const COL_X: Record<string, number> = {
   camera:      60,
   onboard_mon: 300,
@@ -12,6 +12,8 @@ const COL_X: Record<string, number> = {
   main_mon:    1080,
   client_mon:  1340,
   recorder:    1600,
+  converter:   1860,
+  multiviewer: 2060,
 };
 const V_SPACING = 200;
 
@@ -104,6 +106,14 @@ export function sceneToFlow(
   for (const rec of scene.recorders)
     addNode(`${rec.id}_${rec.model}`, "recorder");
 
+  // Converters
+  for (const conv of scene.converters ?? [])
+    addNode(`${conv.id}_${conv.model}`, "converter");
+
+  // Multiviewers
+  for (const mv of scene.multiviewers ?? [])
+    addNode(`${mv.id}_${mv.model}`, "multiviewer");
+
   // ── TX→RX wireless edges ────────────────────────────────────────────────────
   for (const ws of scene.wirelessSets) {
     const txId = `${ws.id}_tx_${ws.txModel ?? "wireless_tx"}`;
@@ -137,63 +147,71 @@ export function sceneToFlow(
       rxMap.set(rx.id, { rxId: rx.id, rxModel: rx.model });
     }
   }
-  const monMap = new Map(scene.monitors.map(m => [m.id, m]));
+  const monMap  = new Map(scene.monitors.map(m => [m.id, m]));
+  const convMap = new Map((scene.converters ?? []).map(c => [c.id, c]));
+  const mvMap   = new Map((scene.multiviewers ?? []).map(m => [m.id, m]));
 
-  for (const mon of scene.monitors) {
-    if (!mon.sourceId || !mon.cableType) continue;
+  // Resolve source node ID from any scene entity
+  function resolveSourceNodeId(sourceId: string): string | undefined {
+    const srcCam  = camMap.get(sourceId);
+    if (srcCam)  return `${srcCam.id}_${srcCam.model}`;
+    const rxEntry = rxMap.get(sourceId);
+    if (rxEntry) return `${rxEntry.rxId}_${rxEntry.rxModel}`;
+    const srcMon  = monMap.get(sourceId);
+    if (srcMon)  return `${srcMon.id}_${srcMon.model}`;
+    const srcConv = convMap.get(sourceId);
+    if (srcConv) return `${srcConv.id}_${srcConv.model}`;
+    const srcMv   = mvMap.get(sourceId);
+    if (srcMv)   return `${srcMv.id}_${srcMv.model}`;
+    return undefined;
+  }
 
-    const cableType = mon.cableType;
-    const targetNodeId = `${mon.id}_${mon.model}`;
+  // Generic auto-edge builder (used for monitors, converters, multiviewers)
+  function buildAutoEdge(
+    entityId: string,
+    entityModel: string,
+    sourceId: string | undefined,
+    sourcePortIdx: number | undefined,
+    targetPortIdx: number | undefined,
+    cableType: string | undefined,
+  ) {
+    if (!sourceId || !cableType) return;
+    const targetNodeId = `${entityId}_${entityModel}`;
     const targetEq = eqById.get(targetNodeId);
-    if (!targetEq) continue;
+    if (!targetEq) return;
 
-    // Target handle: use stored port index if available, else auto-select
     let targetHandle: string | undefined;
-    if (mon.targetPortIdx !== undefined) {
-      targetHandle = handleId(targetNodeId, mon.targetPortIdx);
-      // Verify it exists in the actual equipment
-      if (!targetEq.ports.some(p => p.id === targetHandle)) {
-        targetHandle = undefined;
-      }
+    if (targetPortIdx !== undefined) {
+      targetHandle = handleId(targetNodeId, targetPortIdx);
+      if (!targetEq.ports.some(p => p.id === targetHandle)) targetHandle = undefined;
     }
     if (!targetHandle) {
       targetHandle =
         targetEq.ports.find(p => p.direction === "in" && p.type === cableType)?.id ??
         targetEq.ports.find(p => p.direction === "in" && p.type !== "WIRELESS")?.id;
     }
-    if (!targetHandle) continue;
+    if (!targetHandle) return;
 
-    // Resolve source node ID
-    let sourceNodeId: string | undefined;
-    const srcCam = camMap.get(mon.sourceId);
-    if (srcCam) sourceNodeId = `${srcCam.id}_${srcCam.model}`;
-    const rxEntry = rxMap.get(mon.sourceId);
-    if (rxEntry) sourceNodeId = `${rxEntry.rxId}_${rxEntry.rxModel}`;
-    const srcMon = monMap.get(mon.sourceId);
-    if (srcMon) sourceNodeId = `${srcMon.id}_${srcMon.model}`;
-    if (!sourceNodeId) continue;
-
+    const sourceNodeId = resolveSourceNodeId(sourceId);
+    if (!sourceNodeId) return;
     const sourceEq = eqById.get(sourceNodeId);
-    if (!sourceEq) continue;
+    if (!sourceEq) return;
 
-    // Source handle: use stored port index if available, else auto-select
     let sourceHandle: string | undefined;
-    if (mon.sourcePortIdx !== undefined) {
-      sourceHandle = handleId(sourceNodeId, mon.sourcePortIdx);
-      if (!sourceEq.ports.some(p => p.id === sourceHandle)) {
-        sourceHandle = undefined;
-      }
+    if (sourcePortIdx !== undefined) {
+      sourceHandle = handleId(sourceNodeId, sourcePortIdx);
+      if (!sourceEq.ports.some(p => p.id === sourceHandle)) sourceHandle = undefined;
     }
     if (!sourceHandle) {
       sourceHandle =
         sourceEq.ports.find(p => p.direction === "out" && p.type === cableType)?.id ??
         sourceEq.ports.find(p => p.direction === "out" && p.type !== "WIRELESS")?.id;
     }
-    if (!sourceHandle) continue;
+    if (!sourceHandle) return;
 
     const color = CABLE_COLORS[cableType] ?? "#888";
     edges.push({
-      id: `auto_${mon.sourceId}_${mon.id}`,
+      id: `auto_${sourceId}_${entityId}`,
       source: sourceNodeId,
       target: targetNodeId,
       sourceHandle,
@@ -202,6 +220,18 @@ export function sceneToFlow(
       data: { cableType, isInvalid: false, locked: false },
       style: { stroke: color, strokeWidth: 2.5 },
     });
+  }
+
+  for (const mon of scene.monitors) {
+    buildAutoEdge(mon.id, mon.model, mon.sourceId, mon.sourcePortIdx, mon.targetPortIdx, mon.cableType);
+  }
+
+  for (const conv of scene.converters ?? []) {
+    buildAutoEdge(conv.id, conv.model, conv.sourceId, conv.sourcePortIdx, conv.targetPortIdx, conv.cableType);
+  }
+
+  for (const mv of scene.multiviewers ?? []) {
+    buildAutoEdge(mv.id, mv.model, mv.sourceId, mv.sourcePortIdx, mv.targetPortIdx, mv.cableType);
   }
 
   // ── Source→TX cable edges (source = camera or monitor loop-through) ──────────

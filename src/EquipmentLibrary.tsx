@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DB, MONITOR_MODELS, type CameraModelId, type EquipmentModelId } from "./equipmentDB";
+import { DB, MONITOR_MODELS, CONVERTER_MODELS, MULTIVIEWER_MODELS, type CameraModelId, type EquipmentModelId } from "./equipmentDB";
 
 const C = {
   bg:        "#FFFFFF",
@@ -37,10 +37,12 @@ const RECORDER_IDS: EquipmentModelId[] = [
 
 // Category accent colors match TYPE_COLOR in EquipmentNode
 const SECTION_META = [
-  { label: "カメラ",     ids: CAMERA_IDS as EquipmentModelId[],              dot: "#30d158" },
-  { label: "モニター",   ids: MONITOR_MODELS as EquipmentModelId[],           dot: "#8e8e93" },
-  { label: "ワイヤレス", ids: WIRELESS_IDS,                                   dot: "#ff9f0a" },
-  { label: "レコーダー", ids: RECORDER_IDS,                                   dot: "#bf5af2" },
+  { label: "カメラ",           ids: CAMERA_IDS as EquipmentModelId[],              dot: "#30d158" },
+  { label: "モニター",         ids: MONITOR_MODELS as EquipmentModelId[],           dot: "#8e8e93" },
+  { label: "ワイヤレス",       ids: WIRELESS_IDS,                                   dot: "#ff9f0a" },
+  { label: "レコーダー",       ids: RECORDER_IDS,                                   dot: "#bf5af2" },
+  { label: "コンバーター",     ids: CONVERTER_MODELS as EquipmentModelId[],         dot: "#0ea5e9" },
+  { label: "マルチビューワー", ids: MULTIVIEWER_MODELS as EquipmentModelId[],       dot: "#22c55e" },
 ];
 
 function LibraryItem({ modelId }: { modelId: EquipmentModelId }) {

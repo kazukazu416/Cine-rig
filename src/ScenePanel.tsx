@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import type { Edge } from "@xyflow/react";
 import type {
   Scene, CameraInstance, WirelessSetInstance, WirelessRxUnit, MonitorInstance, SceneMonitorRole,
+  ConverterInstance, MultiviewerInstance,
 } from "./types";
 import { SCENE_ROLE_LABELS, CABLE_COLORS } from "./types";
 import {
-  DB, MONITOR_MODELS, outputPortOptions, inputPortOptions,
+  DB, MONITOR_MODELS, CONVERTER_MODELS, MULTIVIEWER_MODELS, outputPortOptions, inputPortOptions,
   type CameraModelId, type EquipmentModelId, type WirelessModelId,
 } from "./equipmentDB";
 import { Modal } from "./Modal";
@@ -75,6 +76,12 @@ function rxHandle(rx: WirelessRxUnit, portIdx: number): string {
 function monHandle(mon: MonitorInstance, portIdx: number): string {
   return `${mon.id}_${mon.model}_p${portIdx}`;
 }
+function convHandle(conv: ConverterInstance, portIdx: number): string {
+  return `${conv.id}_${conv.model}_p${portIdx}`;
+}
+function mvHandle(mv: MultiviewerInstance, portIdx: number): string {
+  return `${mv.id}_${mv.model}_p${portIdx}`;
+}
 
 // ── Connection info for MonitorCard display ───────────────────────────────────
 
@@ -116,6 +123,22 @@ function resolveHandleSource(
       return { name: DB[srcMon.model as EquipmentModelId]?.name ?? srcMon.model, portLabel };
     }
   }
+  for (const conv of scene.converters ?? []) {
+    const prefix = `${conv.id}_${conv.model}_p`;
+    if (sourceHandle.startsWith(prefix)) {
+      const idx = parseInt(sourceHandle.slice(prefix.length), 10);
+      const portLabel = outputPortOptions(conv.model as EquipmentModelId).find(p => p.idx === idx)?.label ?? "";
+      return { name: DB[conv.model as EquipmentModelId]?.name ?? conv.model, portLabel };
+    }
+  }
+  for (const mv of scene.multiviewers ?? []) {
+    const prefix = `${mv.id}_${mv.model}_p`;
+    if (sourceHandle.startsWith(prefix)) {
+      const idx = parseInt(sourceHandle.slice(prefix.length), 10);
+      const portLabel = outputPortOptions(mv.model as EquipmentModelId).find(p => p.idx === idx)?.label ?? "";
+      return { name: DB[mv.model as EquipmentModelId]?.name ?? mv.model, portLabel };
+    }
+  }
   return null;
 }
 
@@ -144,6 +167,18 @@ function getMonitorConnectionInfo(mon: MonitorInstance, scene: Scene, edges: Edg
         if (srcMon) {
           sourceName = DB[srcMon.model as EquipmentModelId]?.name ?? srcMon.model;
           sourcePortLabel = resolveOutPort(srcMon.model as EquipmentModelId);
+        } else {
+          const srcConv = scene.converters?.find(c => c.id === mon.sourceId);
+          if (srcConv) {
+            sourceName = DB[srcConv.model as EquipmentModelId]?.name ?? srcConv.model;
+            sourcePortLabel = resolveOutPort(srcConv.model as EquipmentModelId);
+          } else {
+            const srcMv = scene.multiviewers?.find(m => m.id === mon.sourceId);
+            if (srcMv) {
+              sourceName = DB[srcMv.model as EquipmentModelId]?.name ?? srcMv.model;
+              sourcePortLabel = resolveOutPort(srcMv.model as EquipmentModelId);
+            }
+          }
         }
       }
     }
@@ -465,7 +500,7 @@ function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlig
 
 function MonitorCard({
   mon, cameras, onChange, onRemove, highlighted, connectionInfo,
-  allRxUnits, allMonitors, allWirelessSets, onConnect, onConnectOut, onDisconnectDest, usedHandles,
+  allRxUnits, allMonitors, allWirelessSets, allConverters, onConnect, onConnectOut, onDisconnectDest, usedHandles,
 }: {
   mon: MonitorInstance;
   cameras: CameraInstance[];
@@ -476,6 +511,7 @@ function MonitorCard({
   allRxUnits: WirelessRxUnit[];
   allMonitors: MonitorInstance[];
   allWirelessSets: WirelessSetInstance[];
+  allConverters: ConverterInstance[];
   onConnect: (sourceId: string, sourcePortIdx: number, cableType: string, targetPortIdx: number) => void;
   onConnectOut: (destType: "monitor" | "tx", destId: string, srcPortIdx: number, cableType: string, destInPortIdx?: number) => void;
   onDisconnectDest: (destType: "monitor" | "tx", destId: string) => void;
@@ -506,15 +542,20 @@ function MonitorCard({
     id: m.id, model: m.model,
     label: DB[m.model as EquipmentModelId]?.name ?? m.model,
   }));
+  const srcConverters: ConnSrc[] = allConverters.map(c => ({
+    id: c.id, model: c.model,
+    label: DB[c.model as EquipmentModelId]?.name ?? c.model,
+  }));
   const hasFreeOut = (s: ConnSrc) =>
     outputPortOptions(s.model as EquipmentModelId).some(
       p => !usedHandles.has(`${s.id}_${s.model}_p${p.idx}`)
     );
-  const availCams = srcCameras.filter(hasFreeOut);
-  const availRxs  = srcRxUnits.filter(hasFreeOut);
-  const availMons = srcMonitors.filter(hasFreeOut);
+  const availCams  = srcCameras.filter(hasFreeOut);
+  const availRxs   = srcRxUnits.filter(hasFreeOut);
+  const availMons  = srcMonitors.filter(hasFreeOut);
+  const availConvs = srcConverters.filter(hasFreeOut);
 
-  const selSrc = [...availCams, ...availRxs, ...availMons].find(s => s.id === selSrcId);
+  const selSrc = [...availCams, ...availRxs, ...availMons, ...availConvs].find(s => s.id === selSrcId);
   const freeOutPorts = selSrc
     ? outputPortOptions(selSrc.model as EquipmentModelId).filter(
         p => !usedHandles.has(`${selSrc.id}_${selSrc.model}_p${p.idx}`)
@@ -645,7 +686,7 @@ function MonitorCard({
                   setSelSrcId(v);
                   setSelOutPortIdx(undefined);
                   setSelInPortIdx(undefined);
-                  const src = [...availCams, ...availRxs, ...availMons].find(s => s.id === v);
+                  const src = [...availCams, ...availRxs, ...availMons, ...availConvs].find(s => s.id === v);
                   const firstFree = src
                     ? outputPortOptions(src.model as EquipmentModelId).find(
                         p => !usedHandles.has(`${src.id}_${src.model}_p${p.idx}`)
@@ -668,6 +709,11 @@ function MonitorCard({
                 {availMons.length > 0 && (
                   <optgroup label="モニター">
                     {availMons.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </optgroup>
+                )}
+                {availConvs.length > 0 && (
+                  <optgroup label="コンバーター">
+                    {availConvs.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </optgroup>
                 )}
               </Sel>
@@ -1135,6 +1181,329 @@ function WirelessCard({
   );
 }
 
+// ── Shared source/dest card helper ───────────────────────────────────────────
+
+function DeviceCard({
+  nodeId, nodeModel, nodeType, accentColor, typeLabel,
+  cameras, allRxUnits, allMonitors, allConverters, allWirelessSets,
+  highlighted, usedHandles, isConnected, modelSelector,
+  sourceId, sourcePortIdx, targetPortIdx, cableType,
+  onClearSource,
+  onConnectSource,
+  onConnectOut, onDisconnectDest,
+}: {
+  nodeId: string;
+  nodeModel: string;
+  nodeType: string;
+  accentColor: string;
+  typeLabel: string;
+  cameras: CameraInstance[];
+  allRxUnits: WirelessRxUnit[];
+  allMonitors: MonitorInstance[];
+  allConverters: ConverterInstance[];
+  allWirelessSets: WirelessSetInstance[];
+  highlighted?: boolean;
+  usedHandles: Set<string>;
+  isConnected: boolean;
+  modelSelector: React.ReactNode;
+  sourceId?: string;
+  sourcePortIdx?: number;
+  targetPortIdx?: number;
+  cableType?: string;
+  onClearSource: () => void;
+  onConnectSource: (srcId: string, srcPortIdx: number, cable: string, tgtPortIdx: number) => void;
+  onConnectOut: (destType: "monitor" | "tx", destId: string, srcPortIdx: number, cable: string, destInPortIdx?: number) => void;
+  onDisconnectDest: (destType: "monitor" | "tx", destId: string) => void;
+}) {
+  const [selSrcId, setSelSrcId] = useState("");
+  const [selOutPortIdx, setSelOutPortIdx] = useState<number | undefined>(undefined);
+  const [selInPortIdx, setSelInPortIdx] = useState<number | undefined>(undefined);
+  const [selCableType, setSelCableType] = useState("SDI");
+  const [dstId, setDstId] = useState("");
+  const [dstOutIdx, setDstOutIdx] = useState<number | undefined>(undefined);
+  const [dstInIdx, setDstInIdx] = useState<number | undefined>(undefined);
+
+  type ConnSrc = { id: string; model: string; label: string };
+  const hasFreeOut = (s: ConnSrc) =>
+    outputPortOptions(s.model as EquipmentModelId).some(p => !usedHandles.has(`${s.id}_${s.model}_p${p.idx}`));
+
+  const availCams: ConnSrc[]  = cameras.map(c => ({ id: c.id, model: c.model, label: DB[c.model as EquipmentModelId]?.name ?? c.model })).filter(hasFreeOut);
+  const availRxs: ConnSrc[]   = allRxUnits.map(r => ({ id: r.id, model: r.model, label: DB[r.model as EquipmentModelId]?.name ?? r.model })).filter(hasFreeOut);
+  const availMons: ConnSrc[]  = allMonitors.map(m => ({ id: m.id, model: m.model, label: DB[m.model as EquipmentModelId]?.name ?? m.model })).filter(hasFreeOut);
+  const availConvs: ConnSrc[] = allConverters.filter(c => c.id !== nodeId).map(c => ({ id: c.id, model: c.model, label: DB[c.model as EquipmentModelId]?.name ?? c.model })).filter(hasFreeOut);
+  const allSrcs = [...availCams, ...availRxs, ...availMons, ...availConvs];
+
+  const selSrc = allSrcs.find(s => s.id === selSrcId);
+  const freeOutPorts = selSrc ? outputPortOptions(selSrc.model as EquipmentModelId).filter(p => !usedHandles.has(`${selSrc.id}_${selSrc.model}_p${p.idx}`)) : [];
+  const freeInPorts  = inputPortOptions(nodeModel as EquipmentModelId).filter(p => !usedHandles.has(`${nodeId}_${nodeModel}_p${p.idx}`));
+  const activeOut = freeOutPorts.find(p => p.idx === selOutPortIdx) ?? freeOutPorts[0];
+  const activeIn  = freeInPorts.find(p => p.idx === selInPortIdx) ?? freeInPorts.find(p => p.type === activeOut?.type) ?? freeInPorts[0];
+  const canConnect = !!selSrc && !!activeOut && !!activeIn;
+
+  // 接続先 derivations
+  const outPorts     = outputPortOptions(nodeModel as EquipmentModelId);
+  const freeOutPorts2 = outPorts.filter(p => !usedHandles.has(`${nodeId}_${nodeModel}_p${p.idx}`));
+  const existingDestMons = allMonitors.filter(m => m.sourceId === nodeId);
+  const existingDestTxs  = allWirelessSets.filter(ws => ws.sourceId === nodeId);
+  const parseDstId = (v: string): { type: "monitor" | "tx"; id: string } | null => {
+    if (v.startsWith("mon:")) return { type: "monitor", id: v.slice(4) };
+    if (v.startsWith("tx:"))  return { type: "tx",      id: v.slice(3) };
+    return null;
+  };
+  const parsedDst     = parseDstId(dstId);
+  const dstDestMon    = parsedDst?.type === "monitor" ? allMonitors.find(m => m.id === parsedDst.id) : undefined;
+  const dstFreeInPorts = dstDestMon ? inputPortOptions(dstDestMon.model as EquipmentModelId).filter(p => !usedHandles.has(monHandle(dstDestMon, p.idx))) : [];
+  const activeDstOut  = freeOutPorts2.find(p => p.idx === dstOutIdx) ?? freeOutPorts2[0];
+  const activeDstIn   = dstFreeInPorts.find(p => p.idx === dstInIdx) ?? dstFreeInPorts.find(p => p.type === activeDstOut?.type) ?? dstFreeInPorts[0];
+  const canDstConn    = !!parsedDst && !!activeDstOut && (parsedDst.type === "tx" || !!activeDstIn);
+  const availDestMons = allMonitors.filter(m => m.sourceId !== nodeId && inputPortOptions(m.model as EquipmentModelId).some(p => !usedHandles.has(monHandle(m, p.idx))));
+  const availDestTxs  = allWirelessSets.filter(ws => ws.sourceId !== nodeId);
+
+  // Resolve source name for display
+  const resolvedSrcName = sourceId
+    ? (cameras.find(c => c.id === sourceId)
+        ? DB[cameras.find(c => c.id === sourceId)!.model as EquipmentModelId]?.name
+        : allRxUnits.find(r => r.id === sourceId)
+          ? DB[allRxUnits.find(r => r.id === sourceId)!.model as EquipmentModelId]?.name
+          : allMonitors.find(m => m.id === sourceId)
+            ? DB[allMonitors.find(m => m.id === sourceId)!.model as EquipmentModelId]?.name
+            : allConverters.find(c => c.id === sourceId)
+              ? DB[allConverters.find(c => c.id === sourceId)!.model as EquipmentModelId]?.name
+              : sourceId) ?? sourceId
+    : undefined;
+
+  return (
+    <div style={{ margin: "5px 8px", background: C.bg, border: highlighted ? `1.5px solid ${C.accent}` : `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden", boxShadow: highlighted ? `0 0 0 2px ${C.accentBg}` : "none" }}>
+      <div style={{ height: 3, background: accentColor }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px 5px 10px", borderBottom: `1px solid ${C.border}` }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: accentColor, flex: 1, letterSpacing: 0.5 }}>
+          {typeLabel}
+        </span>
+        <div title={isConnected ? "入力接続済み" : "入力未接続"} style={{ width: 6, height: 6, borderRadius: "50%", background: isConnected ? "#30d158" : "#ff3b30", flexShrink: 0 }} />
+      </div>
+      <div style={{ padding: "7px 10px", display: "flex", flexDirection: "column", gap: 5 }}>
+        {modelSelector}
+
+        {/* 接続元 */}
+        <div style={{ borderTop: `1px solid ${C.borderFaint}`, paddingTop: 5 }}>
+          {sourceId ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <FieldLabel>接続元</FieldLabel>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ fontSize: 9, color: C.textLight }}>←</span>
+                <span style={{ fontSize: 10, color: C.text, fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {resolvedSrcName}
+                </span>
+                {cableType && <CableBadge type={cableType} />}
+                <button onClick={onClearSource} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.textLight, fontSize: 12, padding: "0 2px", lineHeight: 1 }}>×</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <FieldLabel>接続元を設定</FieldLabel>
+              <Sel value={selSrcId} onChange={v => {
+                setSelSrcId(v);
+                setSelOutPortIdx(undefined);
+                setSelInPortIdx(undefined);
+                const src = allSrcs.find(s => s.id === v);
+                const firstFree = src ? outputPortOptions(src.model as EquipmentModelId).find(p => !usedHandles.has(`${src.id}_${src.model}_p${p.idx}`)) : undefined;
+                setSelCableType(firstFree?.type ?? "SDI");
+              }}>
+                <option value="">— 接続元を選択 —</option>
+                {availCams.length > 0 && <optgroup label="カメラ">{availCams.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</optgroup>}
+                {availRxs.length > 0  && <optgroup label="ワイヤレス RX">{availRxs.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</optgroup>}
+                {availMons.length > 0 && <optgroup label="モニター">{availMons.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</optgroup>}
+                {availConvs.length > 0 && <optgroup label="コンバーター">{availConvs.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</optgroup>}
+              </Sel>
+              {selSrc && freeOutPorts.length > 1 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ fontSize: 9, color: C.textLight, width: 30, flexShrink: 0 }}>出力</span>
+                  <Sel value={String(activeOut?.idx ?? "")} onChange={v => { const idx = Number(v); setSelOutPortIdx(idx); const p = freeOutPorts.find(pp => pp.idx === idx); if (p) setSelCableType(p.type); }}>
+                    {freeOutPorts.map(p => <option key={p.idx} value={String(p.idx)}>{p.label}</option>)}
+                  </Sel>
+                </div>
+              )}
+              {selSrc && freeInPorts.length > 1 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ fontSize: 9, color: C.textLight, width: 30, flexShrink: 0 }}>入力</span>
+                  <Sel value={String(activeIn?.idx ?? "")} onChange={v => setSelInPortIdx(Number(v))}>
+                    {freeInPorts.map(p => <option key={p.idx} value={String(p.idx)}>{p.label}</option>)}
+                  </Sel>
+                </div>
+              )}
+              {canConnect && (
+                <button onClick={() => { onConnectSource(selSrc!.id, activeOut!.idx, selCableType, activeIn!.idx); setSelSrcId(""); setSelOutPortIdx(undefined); setSelInPortIdx(undefined); setSelCableType("SDI"); }}
+                  style={{ marginTop: 2, background: C.accent, border: "none", borderRadius: 5, color: "#FFFFFF", fontSize: 11, fontWeight: 600, padding: "5px 10px", cursor: "pointer", width: "100%", fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif" }}>
+                  接続する
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 接続先 */}
+        {outPorts.length > 0 && (
+          <div style={{ borderTop: `1px solid ${C.borderFaint}`, paddingTop: 5, marginTop: 3 }}>
+            <FieldLabel>接続先</FieldLabel>
+            {existingDestMons.map(destMon => {
+              const srcLbl = outPorts.find(p => p.idx === destMon.sourcePortIdx)?.label ?? "";
+              const dstLbl = inputPortOptions(destMon.model as EquipmentModelId).find(p => p.idx === destMon.targetPortIdx)?.label ?? "";
+              return (
+                <div key={destMon.id} style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 0", marginBottom: 2 }}>
+                  <span style={{ fontSize: 9, color: C.textLight }}>→</span>
+                  <span style={{ fontSize: 10, color: C.text, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {DB[destMon.model as EquipmentModelId]?.name ?? destMon.model}
+                  </span>
+                  {(srcLbl || dstLbl) && <span style={{ fontSize: 9, color: C.textDim, flexShrink: 0 }}>{srcLbl}{srcLbl && dstLbl ? "→" : ""}{dstLbl}</span>}
+                  {destMon.cableType && <CableBadge type={destMon.cableType} />}
+                  <button onClick={() => onDisconnectDest("monitor", destMon.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.textLight, fontSize: 12, padding: "0 2px", lineHeight: 1 }}>×</button>
+                </div>
+              );
+            })}
+            {existingDestTxs.map(ws => (
+              <div key={ws.id} style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 0", marginBottom: 2 }}>
+                <span style={{ fontSize: 9, color: C.textLight }}>→</span>
+                <span style={{ fontSize: 10, color: C.text, flex: 1 }}>
+                  {DB[(ws.txModel ?? "wireless_tx") as EquipmentModelId]?.name ?? ws.txModel}
+                  <span style={{ fontSize: 9, color: C.textDim }}> (TX)</span>
+                </span>
+                <button onClick={() => onDisconnectDest("tx", ws.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.textLight, fontSize: 12, padding: "0 2px", lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+            {freeOutPorts2.length > 0 && (availDestMons.length > 0 || availDestTxs.length > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 2 }}>
+                {freeOutPorts2.length > 1 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ fontSize: 9, color: C.textLight, width: 30, flexShrink: 0 }}>出力</span>
+                    <Sel value={String(activeDstOut?.idx ?? "")} onChange={v => setDstOutIdx(Number(v))}>
+                      {freeOutPorts2.map(p => <option key={p.idx} value={String(p.idx)}>{p.label}</option>)}
+                    </Sel>
+                  </div>
+                )}
+                <Sel value={dstId} onChange={v => { setDstId(v); setDstInIdx(undefined); }}>
+                  <option value="">— 接続先を選択 —</option>
+                  {availDestMons.length > 0 && <optgroup label="モニター">{availDestMons.map(m => <option key={m.id} value={`mon:${m.id}`}>{DB[m.model as EquipmentModelId]?.name ?? m.model}（{SCENE_ROLE_LABELS[m.role]}）</option>)}</optgroup>}
+                  {availDestTxs.length > 0 && <optgroup label="ワイヤレス TX">{availDestTxs.map(ws => <option key={ws.id} value={`tx:${ws.id}`}>{DB[(ws.txModel ?? "wireless_tx") as EquipmentModelId]?.name ?? ws.txModel}</option>)}</optgroup>}
+                </Sel>
+                {dstDestMon && dstFreeInPorts.length > 1 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ fontSize: 9, color: C.textLight, width: 30, flexShrink: 0 }}>入力</span>
+                    <Sel value={String(activeDstIn?.idx ?? "")} onChange={v => setDstInIdx(Number(v))}>
+                      {dstFreeInPorts.map(p => <option key={p.idx} value={String(p.idx)}>{p.label}</option>)}
+                    </Sel>
+                  </div>
+                )}
+                {canDstConn && (
+                  <button onClick={() => {
+                    if (!parsedDst || !activeDstOut) return;
+                    onConnectOut(parsedDst.type, parsedDst.id, activeDstOut.idx, activeDstOut.type, parsedDst.type === "monitor" ? activeDstIn?.idx : undefined);
+                    setDstId(""); setDstOutIdx(undefined); setDstInIdx(undefined);
+                  }}
+                    style={{ marginTop: 2, background: C.accent, border: "none", borderRadius: 5, color: "#FFFFFF", fontSize: 11, fontWeight: 600, padding: "5px 10px", cursor: "pointer", width: "100%", fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif" }}>
+                    接続する
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ConverterCard({
+  conv, cameras, allRxUnits, allMonitors, allConverters, allWirelessSets,
+  onChange, onRemove, highlighted, usedHandles,
+  onConnectOut, onDisconnectDest,
+}: {
+  conv: ConverterInstance;
+  cameras: CameraInstance[];
+  allRxUnits: WirelessRxUnit[];
+  allMonitors: MonitorInstance[];
+  allConverters: ConverterInstance[];
+  allWirelessSets: WirelessSetInstance[];
+  onChange: (c: ConverterInstance) => void;
+  onRemove: () => void;
+  highlighted?: boolean;
+  usedHandles: Set<string>;
+  onConnectOut: (destType: "monitor" | "tx", destId: string, srcPortIdx: number, cableType: string, destInPortIdx?: number) => void;
+  onDisconnectDest: (destType: "monitor" | "tx", destId: string) => void;
+}) {
+  return (
+    <div style={{ position: "relative" }}>
+      <button onClick={onRemove} style={{ position: "absolute", top: 11, right: 8, zIndex: 1, background: "transparent", border: "none", color: C.textLight, cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "2px 5px" }}>×</button>
+      <DeviceCard
+        nodeId={conv.id} nodeModel={conv.model} nodeType="converter"
+        accentColor="#0ea5e9" typeLabel="CONVERTER"
+        cameras={cameras} allRxUnits={allRxUnits} allMonitors={allMonitors}
+        allConverters={allConverters} allWirelessSets={allWirelessSets}
+        highlighted={highlighted} usedHandles={usedHandles}
+        isConnected={!!conv.sourceId}
+        modelSelector={
+          <Sel value={conv.model} onChange={v => onChange({ ...conv, model: v, targetPortIdx: undefined })}>
+            {CONVERTER_MODELS.map(id => <option key={id} value={id}>{DB[id]?.name ?? id}</option>)}
+          </Sel>
+        }
+        sourceId={conv.sourceId} sourcePortIdx={conv.sourcePortIdx}
+        targetPortIdx={conv.targetPortIdx} cableType={conv.cableType}
+        onClearSource={() => onChange({ ...conv, sourceId: undefined, cableType: undefined, sourcePortIdx: undefined, targetPortIdx: undefined })}
+        onConnectSource={(srcId, srcPortIdx, cable, tgtPortIdx) =>
+          onChange({ ...conv, sourceId: srcId, sourcePortIdx: srcPortIdx, cableType: cable, targetPortIdx: tgtPortIdx })
+        }
+        onConnectOut={onConnectOut}
+        onDisconnectDest={onDisconnectDest}
+      />
+    </div>
+  );
+}
+
+function MultiviewerCard({
+  mv, cameras, allRxUnits, allMonitors, allConverters, allWirelessSets,
+  onChange, onRemove, highlighted, usedHandles,
+  onConnectOut, onDisconnectDest,
+}: {
+  mv: MultiviewerInstance;
+  cameras: CameraInstance[];
+  allRxUnits: WirelessRxUnit[];
+  allMonitors: MonitorInstance[];
+  allConverters: ConverterInstance[];
+  allWirelessSets: WirelessSetInstance[];
+  onChange: (m: MultiviewerInstance) => void;
+  onRemove: () => void;
+  highlighted?: boolean;
+  usedHandles: Set<string>;
+  onConnectOut: (destType: "monitor" | "tx", destId: string, srcPortIdx: number, cableType: string, destInPortIdx?: number) => void;
+  onDisconnectDest: (destType: "monitor" | "tx", destId: string) => void;
+}) {
+  return (
+    <div style={{ position: "relative" }}>
+      <button onClick={onRemove} style={{ position: "absolute", top: 11, right: 8, zIndex: 1, background: "transparent", border: "none", color: C.textLight, cursor: "pointer", fontSize: 13, lineHeight: 1, padding: "2px 5px" }}>×</button>
+      <DeviceCard
+        nodeId={mv.id} nodeModel={mv.model} nodeType="multiviewer"
+        accentColor="#22c55e" typeLabel="MULTIVIEWER"
+        cameras={cameras} allRxUnits={allRxUnits} allMonitors={allMonitors}
+        allConverters={allConverters} allWirelessSets={allWirelessSets}
+        highlighted={highlighted} usedHandles={usedHandles}
+        isConnected={!!mv.sourceId}
+        modelSelector={
+          <Sel value={mv.model} onChange={v => onChange({ ...mv, model: v, targetPortIdx: undefined })}>
+            {MULTIVIEWER_MODELS.map(id => <option key={id} value={id}>{DB[id]?.name ?? id}</option>)}
+          </Sel>
+        }
+        sourceId={mv.sourceId} sourcePortIdx={mv.sourcePortIdx}
+        targetPortIdx={mv.targetPortIdx} cableType={mv.cableType}
+        onClearSource={() => onChange({ ...mv, sourceId: undefined, cableType: undefined, sourcePortIdx: undefined, targetPortIdx: undefined })}
+        onConnectSource={(srcId, srcPortIdx, cable, tgtPortIdx) =>
+          onChange({ ...mv, sourceId: srcId, sourcePortIdx: srcPortIdx, cableType: cable, targetPortIdx: tgtPortIdx })
+        }
+        onConnectOut={onConnectOut}
+        onDisconnectDest={onDisconnectDest}
+      />
+    </div>
+  );
+}
+
 // ── ScenePanel ────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -1154,9 +1523,11 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
   const upd = (partial: Partial<Scene>) => onChange({ ...scene, ...partial });
   const scrollBodyRef = useRef<HTMLDivElement>(null);
 
-  const [addCamOpen, setAddCamOpen] = useState(false);
-  const [addMonOpen, setAddMonOpen] = useState(false);
-  const [addWsOpen,  setAddWsOpen]  = useState(false);
+  const [addCamOpen,  setAddCamOpen]  = useState(false);
+  const [addMonOpen,  setAddMonOpen]  = useState(false);
+  const [addWsOpen,   setAddWsOpen]   = useState(false);
+  const [addConvOpen, setAddConvOpen] = useState(false);
+  const [addMvOpen,   setAddMvOpen]   = useState(false);
 
   const [newCamModel, setNewCamModel] = useState("fx6");
   const [newMonModel, setNewMonModel] = useState("smallhd_cine7");
@@ -1165,6 +1536,8 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
   const [newWsTx,       setNewWsTx]       = useState("wireless_tx");
   const [newWsRxModels, setNewWsRxModels] = useState<string[]>(["wireless_rx"]);
   const [newWsSourceId, setNewWsSourceId] = useState("");
+  const [newConvModel, setNewConvModel] = useState("bm_mini_conv_hdmi_sdi_6g");
+  const [newMvModel,   setNewMvModel]   = useState("bm_multiview_4hd");
 
   // Build used-handle set from all current edges (including WIRELESS and locked)
   const usedHandles = new Set(
@@ -1312,6 +1685,59 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
     });
   };
 
+  // ── Converter handlers ─────────────────────────────────────────────────────
+  const openAddConverter = () => { setNewConvModel("bm_mini_conv_hdmi_sdi_6g"); setAddConvOpen(true); };
+  const confirmAddConverter = () => {
+    upd({ converters: [...(scene.converters ?? []), { id: `conv${uid()}`, model: newConvModel }] });
+    setAddConvOpen(false);
+  };
+  const removeConverter = (id: string) => upd({
+    converters: (scene.converters ?? []).filter(c => c.id !== id),
+    monitors: scene.monitors.map(m =>
+      m.sourceId === id ? { ...m, sourceId: undefined, cableType: undefined, sourcePortIdx: undefined, targetPortIdx: undefined } : m
+    ),
+  });
+
+  // ── Multiviewer handlers ───────────────────────────────────────────────────
+  const openAddMultiviewer = () => { setNewMvModel("bm_multiview_4hd"); setAddMvOpen(true); };
+  const confirmAddMultiviewer = () => {
+    upd({ multiviewers: [...(scene.multiviewers ?? []), { id: `mv${uid()}`, model: newMvModel }] });
+    setAddMvOpen(false);
+  };
+  const removeMultiviewer = (id: string) => upd({
+    multiviewers: (scene.multiviewers ?? []).filter(m => m.id !== id),
+    monitors: scene.monitors.map(m =>
+      m.sourceId === id ? { ...m, sourceId: undefined, cableType: undefined, sourcePortIdx: undefined, targetPortIdx: undefined } : m
+    ),
+  });
+
+  // Shared handler: update downstream monitor's sourceId when a converter/multiviewer connects out
+  const makeConnectOut = (srcId: string) =>
+    (destType: "monitor" | "tx", destId: string, srcPortIdx: number, cableType: string, destInPortIdx?: number) => {
+      if (destType === "monitor") {
+        upd({ monitors: scene.monitors.map(m =>
+          m.id === destId ? { ...m, sourceId: srcId, sourcePortIdx: srcPortIdx, cableType, targetPortIdx: destInPortIdx } : m
+        )});
+      } else {
+        upd({ wirelessSets: scene.wirelessSets.map(ws =>
+          ws.id === destId ? { ...ws, sourceId: srcId } : ws
+        )});
+      }
+    };
+
+  const makeDisconnectDest = (_srcId: string) =>
+    (destType: "monitor" | "tx", destId: string) => {
+      if (destType === "monitor") {
+        upd({ monitors: scene.monitors.map(m =>
+          m.id === destId ? { ...m, sourceId: undefined, cableType: undefined, sourcePortIdx: undefined, targetPortIdx: undefined } : m
+        )});
+      } else {
+        upd({ wirelessSets: scene.wirelessSets.map(ws =>
+          ws.id === destId ? { ...ws, sourceId: "" } : ws
+        )});
+      }
+    };
+
   return (
     <div style={{
       width: 272,
@@ -1380,6 +1806,7 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
             allRxUnits={scene.wirelessSets.flatMap(ws => ws.rxUnits)}
             allMonitors={scene.monitors}
             allWirelessSets={scene.wirelessSets}
+            allConverters={scene.converters ?? []}
             onConnect={(srcId, srcPortIdx, cableType, tgtPortIdx) =>
               upd({
                 monitors: scene.monitors.map(m =>
@@ -1389,40 +1816,8 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
                 ),
               })
             }
-            onConnectOut={(destType, destId, srcPortIdx, cableType, destInPortIdx) => {
-              if (destType === "monitor") {
-                upd({
-                  monitors: scene.monitors.map(m =>
-                    m.id === destId
-                      ? { ...m, sourceId: mon.id, sourcePortIdx: srcPortIdx, cableType, targetPortIdx: destInPortIdx }
-                      : m
-                  ),
-                });
-              } else {
-                upd({
-                  wirelessSets: scene.wirelessSets.map(ws =>
-                    ws.id === destId ? { ...ws, sourceId: mon.id } : ws
-                  ),
-                });
-              }
-            }}
-            onDisconnectDest={(destType, destId) => {
-              if (destType === "monitor") {
-                upd({
-                  monitors: scene.monitors.map(m =>
-                    m.id === destId
-                      ? { ...m, sourceId: undefined, cableType: undefined, sourcePortIdx: undefined, targetPortIdx: undefined }
-                      : m
-                  ),
-                });
-              } else {
-                upd({
-                  wirelessSets: scene.wirelessSets.map(ws =>
-                    ws.id === destId ? { ...ws, sourceId: "" } : ws
-                  ),
-                });
-              }
-            }}
+            onConnectOut={makeConnectOut(mon.id)}
+            onDisconnectDest={makeDisconnectDest(mon.id)}
             usedHandles={usedHandles}
           />
         ))}
@@ -1442,6 +1837,56 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
             highlighted={highlightedEntityId === ws.id}
             usedHandles={usedHandles}
             edges={edges}
+          />
+        ))}
+
+        {/* CONVERTERS */}
+        <SecHdr label="CONVERTERS" count={(scene.converters ?? []).length} onAdd={openAddConverter} addLabel="追加" />
+        {(scene.converters ?? []).length === 0 && (
+          <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "12px 0" }}>
+            コンバーターを追加してください
+          </p>
+        )}
+        {(scene.converters ?? []).map(conv => (
+          <ConverterCard
+            key={conv.id}
+            conv={conv}
+            cameras={scene.cameras}
+            allRxUnits={scene.wirelessSets.flatMap(ws => ws.rxUnits)}
+            allMonitors={scene.monitors}
+            allConverters={scene.converters ?? []}
+            allWirelessSets={scene.wirelessSets}
+            onChange={c => upd({ converters: (scene.converters ?? []).map(x => x.id === conv.id ? c : x) })}
+            onRemove={() => removeConverter(conv.id)}
+            highlighted={highlightedEntityId === conv.id}
+            onConnectOut={makeConnectOut(conv.id)}
+            onDisconnectDest={makeDisconnectDest(conv.id)}
+            usedHandles={usedHandles}
+          />
+        ))}
+
+        {/* MULTIVIEWERS */}
+        <SecHdr label="MULTIVIEWERS" count={(scene.multiviewers ?? []).length} onAdd={openAddMultiviewer} addLabel="追加" />
+        {(scene.multiviewers ?? []).length === 0 && (
+          <p style={{ color: C.textLight, fontSize: 10, textAlign: "center", padding: "12px 0" }}>
+            マルチビューワーを追加してください
+          </p>
+        )}
+        {(scene.multiviewers ?? []).map(mv => (
+          <MultiviewerCard
+            key={mv.id}
+            mv={mv}
+            cameras={scene.cameras}
+            allRxUnits={scene.wirelessSets.flatMap(ws => ws.rxUnits)}
+            allMonitors={scene.monitors}
+            allConverters={scene.converters ?? []}
+            allWirelessSets={scene.wirelessSets}
+            onChange={m => upd({ multiviewers: (scene.multiviewers ?? []).map(x => x.id === mv.id ? m : x) })}
+            onRemove={() => removeMultiviewer(mv.id)}
+            highlighted={highlightedEntityId === mv.id}
+            onConnectOut={makeConnectOut(mv.id)}
+            onDisconnectDest={makeDisconnectDest(mv.id)}
+            usedHandles={usedHandles}
           />
         ))}
 
@@ -1504,6 +1949,34 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
                 </Sel>
               </div>
             )}
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Add Converter Modal ──────────────────────────────────────────── */}
+      {addConvOpen && (
+        <Modal title="コンバーターを追加" onClose={() => setAddConvOpen(false)} onConfirm={confirmAddConverter}>
+          <div>
+            <div style={ML}>機種</div>
+            <Sel value={newConvModel} onChange={setNewConvModel}>
+              {CONVERTER_MODELS.map(id => (
+                <option key={id} value={id}>{DB[id]?.name ?? id}</option>
+              ))}
+            </Sel>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Add Multiviewer Modal ─────────────────────────────────────────── */}
+      {addMvOpen && (
+        <Modal title="マルチビューワーを追加" onClose={() => setAddMvOpen(false)} onConfirm={confirmAddMultiviewer}>
+          <div>
+            <div style={ML}>機種</div>
+            <Sel value={newMvModel} onChange={setNewMvModel}>
+              {MULTIVIEWER_MODELS.map(id => (
+                <option key={id} value={id}>{DB[id]?.name ?? id}</option>
+              ))}
+            </Sel>
           </div>
         </Modal>
       )}

@@ -2006,6 +2006,24 @@ export function outputPortOptions(modelId: EquipmentModelId): { idx: number; lab
 
 // ── Model lists ───────────────────────────────────────────────────────────
 
+export const CONVERTER_MODELS: ConverterModelId[] = [
+  "bm_mini_conv_hdmi_sdi_6g",
+  "bm_mini_conv_sdi_hdmi_6g",
+  "bm_mini_conv_sdi_dist",
+  "bm_teranex_hdmi_sdi_12g",
+  "bm_teranex_sdi_hdmi_12g",
+  "decimator_md_hx",
+  "decimator_md_lx",
+];
+
+export const MULTIVIEWER_MODELS: MultiviewerModelId[] = [
+  "bm_multiview_4hd",
+  "bm_multiview_4",
+  "bm_multiview_16",
+  "decimator_dmon_4s",
+  "decimator_dmon_16s",
+];
+
 export const MONITOR_MODELS: MonitorModelId[] = [
   // SmallHD
   "smallhd_cine7",   "smallhd_cine5",

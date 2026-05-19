@@ -9,6 +9,8 @@ const TYPE_COLOR: Record<string, string> = {
   wireless_tx: "#ff9f0a",
   wireless_rx: "#ff9f0a",
   recorder:    "#bf5af2",
+  converter:   "#0ea5e9",
+  multiviewer: "#22c55e",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -17,6 +19,8 @@ const TYPE_LABEL: Record<string, string> = {
   wireless_tx: "Wireless TX",
   wireless_rx: "Wireless RX",
   recorder:    "Recorder",
+  converter:   "Converter",
+  multiviewer: "Multiviewer",
 };
 
 const PORT_COLOR: Record<string, string> = {

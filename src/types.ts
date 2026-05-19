@@ -7,7 +7,7 @@ export interface Port {
 export interface Equipment {
   id: string;
   name: string;
-  type: "camera" | "monitor" | "wireless_tx" | "wireless_rx" | "recorder";
+  type: "camera" | "monitor" | "wireless_tx" | "wireless_rx" | "recorder" | "converter" | "multiviewer";
   ports: Port[];
 }
 
@@ -126,11 +126,33 @@ export interface RecorderInstance {
   label?: string;
 }
 
+export interface ConverterInstance {
+  id: string;
+  model: string;
+  label?: string;
+  sourceId?: string;
+  sourcePortIdx?: number;
+  targetPortIdx?: number;
+  cableType?: string;
+}
+
+export interface MultiviewerInstance {
+  id: string;
+  model: string;
+  label?: string;
+  sourceId?: string;
+  sourcePortIdx?: number;
+  targetPortIdx?: number;
+  cableType?: string;
+}
+
 export interface Scene {
   cameras: CameraInstance[];
   wirelessSets: WirelessSetInstance[];
   monitors: MonitorInstance[];
   recorders: RecorderInstance[];
+  converters?: ConverterInstance[];
+  multiviewers?: MultiviewerInstance[];
 }
 
 export const SCENE_ROLE_LABELS: Record<SceneMonitorRole, string> = {

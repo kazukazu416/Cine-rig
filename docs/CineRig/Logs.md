@@ -1,3 +1,45 @@
+## 2026-05-19 (5)
+
+### コンバーター・マルチビューワーのUI実装 + types.ts拡張
+
+**対応ファイル:** types.ts / equipmentDB.ts / generateSetup.ts / setupToFlow.ts / EquipmentNode.tsx / EquipmentLibrary.tsx / ScenePanel.tsx / App.tsx
+
+**types.ts:**
+- `ConverterInstance` / `MultiviewerInstance` インターフェース追加
+- `Scene` に `converters?` / `multiviewers?` フィールド追加（後方互換のため optional）
+
+**equipmentDB.ts:**
+- `CONVERTER_MODELS` / `MULTIVIEWER_MODELS` エクスポート追加
+
+**generateSetup.ts:**
+- converter / multiviewer を Equipment に変換してセットアップへ組み込み
+
+**setupToFlow.ts:**
+- `converter` (x=1860) / `multiviewer` (x=2060) カラム追加
+- auto-edge生成ロジックをリファクタ → `buildAutoEdge()` 共通関数に統一
+- モニターの接続元解決でConverterを認識するよう修正
+
+**EquipmentNode.tsx:**
+- Multiviewerのノードカラーを rose → green (#22c55e) に変更（ユーザー指示）
+
+**EquipmentLibrary.tsx:**
+- 「コンバーター」「マルチビューワー」セクションをライブラリに追加
+
+**ScenePanel.tsx:**
+- `DeviceCard` 共通コンポーネント追加（Converter/Multiviewerが共用）
+- `ConverterCard` / `MultiviewerCard` コンポーネント追加
+  - 接続元セクション（カメラ/RX/モニター/コンバーターを接続元に選択可）
+  - 接続先セクション（モニター/TX への出力設定）
+- `MonitorCard` の接続元選択に「コンバーター」optgroup を追加
+- ScenePanel に CONVERTERS / MULTIVIEWERS セクション追加（+追加ボタン・モーダル）
+
+**App.tsx:**
+- `INITIAL_SCENE` に `converters: []` / `multiviewers: []` 追加
+- `resolveEntityId` でconverter/multiviewerのノードIDを解決
+- MiniMap ノードカラーに converter (水色) / multiviewer (緑) 追加
+
+---
+
 ## 2026-05-19 (4)
 
 ### シネマカメラ 15機種を equipmentDB に追加
