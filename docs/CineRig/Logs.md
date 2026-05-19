@@ -1,3 +1,39 @@
+## 2026-05-20 (10)
+
+### バッテリーDB新規作成 + 全機材 powerConsumption 入力
+
+**対応ファイル:** src/batteryDB.ts（新規）/ src/equipmentDB.ts
+
+**batteryDB.ts:**
+- `BatteryType` / `Battery` 型定義
+- IDX V-mount 6種登録:
+  - DUO-CP シリーズ: DUO-C98 (96Wh), DUO-C150 (143Wh), DUO-C198P (193Wh・airSafe=false)
+  - ImicroPD シリーズ: IMICRO-50P (47Wh), IMICRO-98P (97Wh), IMICRO-150P (145Wh)
+- `BATTERY_IDS` / `BATTERY_GROUPS` エクスポート
+
+**equipmentDB.ts — powerConsumption 更新:**
+- 公式スペックから確認できた値を入力 (Source URL を notes に記載):
+  - Sony: FX6=20W, FX3=12W, FX9=29W, BURANO=31W, VENICE 2=55W, VENICE=47W
+  - ARRI: ALEXA 35=130W, ALEXA Mini=68W
+  - RED: KOMODO 6K=12W
+  - Canon: C70=8W, C300 MkIII=22W, C500 MkII=22W
+  - Blackmagic: URSA Mini Pro 12K=24W, BMPCC 6K G2=12W
+  - Atomos: Ninja V=7W, Ninja V+=7W
+  - BM Mini Converters (HDMI→SDI 6G / SDI→HDMI 6G / SDI Distribution): 各4W
+  - BM Teranex Mini (HDMI→SDI 12G / SDI→HDMI 12G): 各12W
+  - Decimator MD-HX=5W, MD-LX=3W
+  - BM MultiView 4 HD=9W, MultiView 4=12W, MultiView 16=45W
+  - BM Video Assist 7" 12G=14W
+- 公式確認が取れなかった機材は `null` のまま、notes に「powerConsumption 要確認」を追記:
+  - Sony α7S III, α7 IV / ARRI ALEXA Mini LF, AMIRA, ALEXA LF
+  - RED V-Raptor, V-Raptor XL, KOMODO-X / Canon C300 MkII, EOS R5 C
+  - BM BMPCC 6K Pro, Cinema Camera 6K
+  - 全ワイヤレス (Teradek/Hollyland/Accsoon)
+  - 全 SmallHD モニター / Atomos Shogun 7, Shogun Ultra, Sumo 19, Ninja Ultra, Shogun Connect
+  - FSI DM240W / Decimator DMON-4S, DMON-16S
+
+---
+
 ## 2026-05-19 (9)
 
 ### 案件管理UIをmacOS Finder風に全面改善

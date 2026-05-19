@@ -101,8 +101,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "BP-U",
-      notes: "12G-SDI supports 4K RAW output.",
+      powerConsumption: 20, batteryMount: "BP-U",
+      notes: "12G-SDI supports 4K RAW output. 消費電力 約20W (Source: pro.sony.com/en/products/cinema-line/fx6/specifications/)",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -121,8 +121,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "internal",
-      notes: "NP-FZ100 internal battery. No SDI output.",
+      powerConsumption: 12, batteryMount: "internal",
+      notes: "NP-FZ100 internal battery. No SDI output. 消費電力 約12W (Source: pro.sony.com/en/products/cinema-line/fx3/specifications/)",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -142,8 +142,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "BP-U",
-      notes: "SDI 1: 12G/6G/3G supports up to QFHD/4K. SDI 2: 3G-SDI. Simultaneous SDI+HDMI output supported.",
+      powerConsumption: 29, batteryMount: "BP-U",
+      notes: "SDI 1: 12G/6G/3G supports up to QFHD/4K. SDI 2: 3G-SDI. Simultaneous SDI+HDMI output supported. 消費電力 約29W (Source: pro.sony.com/en/products/cinema-line/fx9/specifications/)",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -165,8 +165,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "SDI OUT1: 12G/6G/3G/HD-SDI. SDI OUT2: 3G/HD-SDI. SDI added in firmware v2.0.",
+      powerConsumption: 31, batteryMount: "V-mount",
+      notes: "SDI OUT1: 12G/6G/3G/HD-SDI. SDI OUT2: 3G/HD-SDI. SDI added in firmware v2.0. 消費電力 約31W (Source: pro.sony.com/en/products/cinema-line/burano/specifications/)",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -188,8 +188,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 2 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "SDI 1/2: 12G (4K output). SDI 3/4: 3G (FHD). Total 4 BNC SDI + 1 HDMI A.",
+      powerConsumption: 55, batteryMount: "V-mount",
+      notes: "SDI 1/2: 12G (4K output). SDI 3/4: 3G (FHD). Total 4 BNC SDI + 1 HDMI A. 消費電力 約55W (Source: pro.sony.com/en/products/digital-cinema-cameras/venice-2/specifications/)",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -212,7 +212,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "internal",
-      notes: "Full-size HDMI 2.0 A. 4K60p 16-bit RAW to external recorder. No SDI.",
+      notes: "Full-size HDMI 2.0 A. 4K60p 16-bit RAW to external recorder. No SDI. powerConsumption 要確認 (Source: sony.com/en/articles/a7s-iii-specifications)",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -231,7 +231,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "internal",
-      notes: "Full-size HDMI A. 4K 4:2:2 10-bit at up to 60fps. No SDI.",
+      notes: "Full-size HDMI A. 4K 4:2:2 10-bit at up to 60fps. No SDI. powerConsumption 要確認 (Source: sony.com/en/articles/a7-iv-specifications)",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -250,7 +250,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "3G", count: 2 },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "2x BNC SDI: 1.5G/3G standard; 6G in UHD/4K recording modes. No HDMI.",
+      notes: "2x BNC SDI: 1.5G/3G standard; 6G in UHD/4K recording modes. No HDMI. powerConsumption 要確認 (Source: arri.com/en/camera-systems/cameras/alexa-mini-lf/technical-data/)",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -270,7 +270,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "12G", count: 2 },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "2x 12G-SDI BNC (SDI 1/2). 3×SDI は V-Raptor XL のみ。HDMI requires optional DSMC3 expander.",
+      notes: "2x 12G-SDI BNC (SDI 1/2). 3×SDI は V-Raptor XL のみ。HDMI requires optional DSMC3 expander. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -289,8 +289,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "internal",
-      notes: "Full-size HDMI A. 4K DCI 4:2:2 10-bit. No SDI output.",
+      powerConsumption: 8, batteryMount: "internal",
+      notes: "Full-size HDMI A. 4K DCI 4:2:2 10-bit. No SDI output. 消費電力 約8W (Source: canon.jp/products/eos-c70/spec)",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -309,8 +309,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "1x 12G/6G/3G-SDI BNC + 1x HDMI.",
+      powerConsumption: 22, batteryMount: "V-mount",
+      notes: "1x 12G/6G/3G-SDI BNC + 1x HDMI. 消費電力 約22W (Source: canon.jp/products/eos-c300-mark-iii/spec)",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -330,8 +330,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "12G", count: 1 },
         { type: "SDI", standard: "3G",  count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "1x 12G-SDI out + 1x 3G-SDI out BNC. No HDMI. Also has 12G-SDI reference input.",
+      powerConsumption: 24, batteryMount: "V-mount",
+      notes: "1x 12G-SDI out + 1x 3G-SDI out BNC. No HDMI. Also has 12G-SDI reference input. 消費電力 約24W (Source: blackmagicdesign.com/products/ursamini/techspecs/W-URSAMC-12K)",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -352,8 +352,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "SDI", standard: "12G", count: 2 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "2x BNC 12G-SDI. SDI 2 can be configured as return input. No HDMI.",
+      powerConsumption: 130, batteryMount: "V-mount",
+      notes: "2x BNC 12G-SDI. SDI 2 can be configured as return input. No HDMI. 消費電力 typ. 130W (Source: arri.com/en/camera-systems/cameras/alexa-35/technical-data/)",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -373,8 +373,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "3G", count: 1 },
         { type: "SDI", standard: "6G", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "SDI 1: up to 3G (HD 444). SDI 2: up to 6G (UHD 422). No HDMI.",
+      powerConsumption: 68, batteryMount: "V-mount",
+      notes: "SDI 1: up to 3G (HD 444). SDI 2: up to 6G (UHD 422). No HDMI. 消費電力 typ. 68W (Source: arri.com/en/camera-systems/cameras/alexa-mini/technical-data/)",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -395,7 +395,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "6G", count: 1 },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "SDI 1: up to 3G (HD 444). SDI 2: up to 6G (UHD 422). No HDMI.",
+      notes: "SDI 1: up to 3G (HD 444). SDI 2: up to 6G (UHD 422). No HDMI. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -415,7 +415,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "6G", count: 4 },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "4x BNC MON OUT (6G-SDI). No HDMI. Predecessor to ALEXA Mini LF.",
+      notes: "4x BNC MON OUT (6G-SDI). No HDMI. Predecessor to ALEXA Mini LF. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -440,8 +440,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 2 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "SDI 1/2: 12G/6G/3G switchable. SDI 3/4: 3G monitoring. 1x HDMI A. Requires AXS-R7 for RAW.",
+      powerConsumption: 47, batteryMount: "V-mount",
+      notes: "SDI 1/2: 12G/6G/3G switchable. SDI 3/4: 3G monitoring. 1x HDMI A. Requires AXS-R7 for RAW. 消費電力 約47W typ. (Source: pro.sony.com/en/products/digital-cinema-cameras/venice/specifications/)",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -467,7 +467,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "3G",  count: 1 },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "3x 12G-SDI rear BNC + 1x 3G-SDI front (for EVF). No HDMI on body.",
+      notes: "3x 12G-SDI rear BNC + 1x 3G-SDI front (for EVF). No HDMI on body. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -488,8 +488,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "SDI", standard: "12G", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "internal",
-      notes: "1x multi-standard 12G/6G/3G/1.5G-SDI BNC. No HDMI. USB-C for accessories.",
+      powerConsumption: 12, batteryMount: "internal",
+      notes: "1x multi-standard 12G/6G/3G/1.5G-SDI BNC. No HDMI. USB-C for accessories. 消費電力 約12W (Source: red.com/komodo)",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -508,7 +508,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI", standard: "12G", count: 1 },
       ],
       powerConsumption: null, batteryMount: "internal",
-      notes: "1x multi-standard 12G/6G/3G/1.5G-SDI BNC. No HDMI. Enhanced cooling vs KOMODO.",
+      notes: "1x multi-standard 12G/6G/3G/1.5G-SDI BNC. No HDMI. Enhanced cooling vs KOMODO. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI", direction: "out" },
@@ -530,7 +530,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "2x BNC 3G-SDI (SDI OUT / MON.) + 1x HDMI. Dual 3G for 4K RAW output.",
+      notes: "2x BNC 3G-SDI (SDI OUT / MON.) + 1x HDMI. Dual 3G for 4K RAW output. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -551,8 +551,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 2 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "2x BNC 12G-SDI (SDI OUT + MON.) + 1x HDMI. Both SDI support 12G/6G/3G.",
+      powerConsumption: 22, batteryMount: "V-mount",
+      notes: "2x BNC 12G-SDI (SDI OUT + MON.) + 1x HDMI. Both SDI support 12G/6G/3G. 消費電力 約22W (Source: canon.jp/products/eos-c500-mark-ii/spec)",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -573,7 +573,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "internal",
-      notes: "Full-size HDMI A. 8K RAW output to external recorder. No SDI.",
+      notes: "Full-size HDMI A. 8K RAW output to external recorder. No SDI. powerConsumption 要確認",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -593,8 +593,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: "internal",
-      notes: "Full-size HDMI 2.0. Up to 1080p60 monitoring output. No SDI.",
+      powerConsumption: 12, batteryMount: "internal",
+      notes: "Full-size HDMI 2.0. Up to 1080p60 monitoring output. No SDI. 消費電力 約12W (Source: blackmagicdesign.com/products/blackmagicpocketcinemacamera/techspecs/W-CINEPSCM-13)",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -613,7 +613,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "internal",
-      notes: "Full-size HDMI 2.0. ND filters built-in. Up to 1080p60 monitoring output. No SDI.",
+      notes: "Full-size HDMI 2.0. ND filters built-in. Up to 1080p60 monitoring output. No SDI. powerConsumption 要確認",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -632,7 +632,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "internal",
-      notes: "Full-size HDMI 2.0. Full-frame sensor with L-mount. Up to 1080p60 monitoring. No SDI.",
+      notes: "Full-size HDMI 2.0. Full-frame sensor with L-mount. Up to 1080p60 monitoring. No SDI. powerConsumption 要確認",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -675,7 +675,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
       powerConsumption: null, batteryMount: null,
-      notes: "Max 1080p60 over SDI, 4K30 over HDMI. 750ft (230m) range.",
+      notes: "Max 1080p60 over SDI, 4K30 over HDMI. 750ft (230m) range. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -696,7 +696,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: null, notes: "",
+      powerConsumption: null, batteryMount: null, notes: "powerConsumption 要確認",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -718,7 +718,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
       powerConsumption: null, batteryMount: null,
-      notes: "Same ports as LT 750. 1500ft (450m) range.",
+      notes: "Same ports as LT 750. 1500ft (450m) range. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -739,7 +739,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: null, notes: "",
+      powerConsumption: null, batteryMount: null, notes: "powerConsumption 要確認",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -763,7 +763,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
       powerConsumption: null, batteryMount: null,
-      notes: "12G-SDI supports 4K60. 3D LUT, FRC, anamorphic desqueeze. 1500ft range.",
+      notes: "12G-SDI supports 4K60. 3D LUT, FRC, anamorphic desqueeze. 1500ft range. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -784,7 +784,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: null, notes: "",
+      powerConsumption: null, batteryMount: null, notes: "powerConsumption 要確認",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -806,7 +806,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
       powerConsumption: null, batteryMount: null,
-      notes: "Same ports as XT 1500. 3000ft (900m) range.",
+      notes: "Same ports as XT 1500. 3000ft (900m) range. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -827,7 +827,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: null, batteryMount: null, notes: "",
+      powerConsumption: null, batteryMount: null, notes: "powerConsumption 要確認",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -853,7 +853,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "WIRELESS", count: 1 },
       ],
       powerConsumption: null, batteryMount: null,
-      notes: "Older Bolt 500 XT generation. 500ft range.",
+      notes: "Older Bolt 500 XT generation. 500ft range. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -875,7 +875,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1 },
       ],
       powerConsumption: null, batteryMount: null,
-      notes: "Dual 3G-SDI outputs on RX.",
+      notes: "Dual 3G-SDI outputs on RX. powerConsumption 要確認",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -902,7 +902,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "1.4", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "HDMI 1.4b only (no SDI). 4K30 transmission. HDMI loop-through. 1300ft (400m).",
+      notes: "HDMI 1.4b only (no SDI). 4K30 transmission. HDMI loop-through. 1300ft (400m). powerConsumption 要確認",
     },
     ports: [
       { type: "HDMI",     direction: "in" },
@@ -923,7 +923,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null, count: 1 },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "HDMI only output.",
+      notes: "HDMI only output. powerConsumption 要確認",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -946,7 +946,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "Standard: 1080p60 SDI. 4K SE variant supports 4K30 over HDMI. 1200ft (350m).",
+      notes: "Standard: 1080p60 SDI. 4K SE variant supports 4K30 over HDMI. 1200ft (350m). powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -968,7 +968,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1 },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "Cross-conversion: TX SDI→RX HDMI, TX HDMI→RX SDI.",
+      notes: "Cross-conversion: TX SDI→RX HDMI, TX HDMI→RX SDI. powerConsumption 要確認",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -995,7 +995,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "SDI 1 = input; SDI 2 = input + loop-through output. HDMI 2.0 loop. Optional V/Gold plates.",
+      notes: "SDI 1 = input; SDI 2 = input + loop-through output. HDMI 2.0 loop. Optional V/Gold plates. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1022,7 +1022,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "Same port layout as Cine 7. SDI 2 = loop-through. Optional V/Gold mount plates.",
+      notes: "Same port layout as Cine 7. SDI 2 = loop-through. Optional V/Gold mount plates. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1049,7 +1049,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "6G-SDI supports 4K up to 30fps. 2-pin power passthrough. Ethernet for camera control.",
+      notes: "6G-SDI supports 4K up to 30fps. 2-pin power passthrough. Ethernet for camera control. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1076,7 +1076,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "Smart 5 series. 3G-SDI (not 6G). SDI 2 = loop-through.",
+      notes: "Smart 5 series. 3G-SDI (not 6G). SDI 2 = loop-through. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1103,7 +1103,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "10\" portable production monitor. IP54. 6G-SDI 4K. Ethernet port. GPI interface.",
+      notes: "10\" portable production monitor. IP54. 6G-SDI 4K. Ethernet port. GPI interface. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1130,7 +1130,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "SDI 2 = loop-through. HDMI out confirmed via Quick Start Guide port diagram (port K).",
+      notes: "SDI 2 = loop-through. HDMI out confirmed via Quick Start Guide port diagram (port K). powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1157,7 +1157,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "Smart 5 series. 1000nit. PageOS 5.",
+      notes: "Smart 5 series. 1000nit. PageOS 5. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1184,7 +1184,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "700nit. SDI↔HDMI cross-conversion. Older model.",
+      notes: "700nit. SDI↔HDMI cross-conversion. Older model. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1211,7 +1211,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1, cleanFeed: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "SDI 1 out is assignable; SDI 2 acts as pass-through. HDMI clean feed out.",
+      notes: "SDI 1 out is assignable; SDI 2 acts as pass-through. HDMI clean feed out. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1240,7 +1240,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0",  count: 1, cleanFeed: true },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "12G-SDI 4K60. Records to SSD. HDR monitoring.",
+      notes: "12G-SDI 4K60. Records to SSD. HDR monitoring. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1266,7 +1266,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0",  count: 1, cleanFeed: true },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "AtomOS 11. RAW recording up to 8K30/6K60/4K120. Optional NDI TX upgrade.",
+      notes: "AtomOS 11. RAW recording up to 8K30/6K60/4K120. Optional NDI TX upgrade. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1289,8 +1289,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
-      powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "No built-in SDI. SDI via optional AtomX SDI module. Records ProRes/DNxHR.",
+      powerConsumption: 7, batteryMount: "Sony NP-F",
+      notes: "No built-in SDI. SDI via optional AtomX SDI module. Records ProRes/DNxHR. 消費電力 約7W (Source: atomos.com/products/ninja-v/specifications)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1311,8 +1311,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
-      powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "No built-in SDI. SDI via optional AtomX SDI module. Supports RAW over HDMI.",
+      powerConsumption: 7, batteryMount: "Sony NP-F",
+      notes: "No built-in SDI. SDI via optional AtomX SDI module. Supports RAW over HDMI. 消費電力 約7W (Source: atomos.com/products/ninja-v-plus/specifications)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1334,7 +1334,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "No built-in SDI. SDI via optional Atomos Connect module. Records ProRes RAW/ProRes/H.265.",
+      notes: "No built-in SDI. SDI via optional Atomos Connect module. Records ProRes RAW/ProRes/H.265. powerConsumption 要確認",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1359,7 +1359,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, cleanFeed: true },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "19\" HDR production monitor. SDI 1: 12G (4K single-link), SDI 2-4: 3G (Quad-link 4K / HD). Records to SSD.",
+      notes: "19\" HDR production monitor. SDI 1: 12G (4K single-link), SDI 2-4: 3G (Quad-link 4K / HD). Records to SSD. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1563,7 +1563,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: null,
-      notes: "FSI reference production monitor. SDI loop-through only.",
+      notes: "FSI reference production monitor. SDI loop-through only. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1590,7 +1590,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0",  count: 1 },
       ],
       powerConsumption: null, batteryMount: null,
-      notes: "No integrated display. Records to SSD via USB-C. Ethernet/Wi-Fi streaming.",
+      notes: "No integrated display. Records to SSD via USB-C. Ethernet/Wi-Fi streaming. powerConsumption 要確認",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1615,8 +1615,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 1 },
         { type: "HDMI", standard: "2.0",  count: 1 },
       ],
-      powerConsumption: null, batteryMount: "V-mount",
-      notes: "7\" 2500nit touchscreen. Records 4K ProRes/H.265. 12G-SDI and HDMI 2.0a in/out.",
+      powerConsumption: 14, batteryMount: "V-mount",
+      notes: "7\" 2500nit touchscreen. Records 4K ProRes/H.265. 12G-SDI and HDMI 2.0a in/out. 消費電力 約14W (Source: blackmagicdesign.com/products/blackmagicvideoassist/techspecs/W-VIDASS-14)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1638,8 +1638,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       size: null, resolution: null, brightness: null, hdr: null, recorder: false,
       inputs:  [{ type: "HDMI", standard: "2.0", count: 1 }],
       outputs: [{ type: "SDI",  standard: "6G",  count: 2 }],
-      powerConsumption: null, batteryMount: null,
-      notes: "Converts HDMI to dual 6G-SDI. Supports SD/HD/Ultra HD up to 2160p30. W-CONM-27.",
+      powerConsumption: 4, batteryMount: null,
+      notes: "Converts HDMI to dual 6G-SDI. Supports SD/HD/Ultra HD up to 2160p30. W-CONM-27. 消費電力 約4W (Source: blackmagicdesign.com/products/miniconverters/techspecs/W-CONM-27)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1658,8 +1658,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       size: null, resolution: null, brightness: null, hdr: null, recorder: false,
       inputs:  [{ type: "SDI",  standard: "6G",  count: 1 }],
       outputs: [{ type: "HDMI", standard: null,   count: 1 }],
-      powerConsumption: null, batteryMount: null,
-      notes: "Converts SD/HD/6G-SDI to HDMI. Secondary ALT SDI input for auto-failover. Source URL: blackmagicdesign.com/products/miniconverters/techspecs",
+      powerConsumption: 4, batteryMount: null,
+      notes: "Converts SD/HD/6G-SDI to HDMI. Secondary ALT SDI input for auto-failover. 消費電力 約4W (Source: blackmagicdesign.com/products/miniconverters/techspecs)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1677,8 +1677,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       size: null, resolution: null, brightness: null, hdr: null, recorder: false,
       inputs:  [{ type: "SDI", standard: "3G", count: 1 }],
       outputs: [{ type: "SDI", standard: "3G", count: 8 }],
-      powerConsumption: null, batteryMount: null,
-      notes: "1 SD/HD/3G-SDI input distributed to 8 re-clocked outputs. SD/HD formats up to 1080p60. W-CONM-13.",
+      powerConsumption: 4, batteryMount: null,
+      notes: "1 SD/HD/3G-SDI input distributed to 8 re-clocked outputs. SD/HD formats up to 1080p60. W-CONM-13. 消費電力 約4W (Source: blackmagicdesign.com/products/miniconverters/techspecs/W-CONM-13)",
     },
     ports: [
       { type: "SDI", direction: "in" },
@@ -1703,8 +1703,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       size: null, resolution: null, brightness: null, hdr: null, recorder: false,
       inputs:  [{ type: "HDMI", standard: "2.0", count: 1 }],
       outputs: [{ type: "SDI",  standard: "12G", count: 2 }],
-      powerConsumption: null, batteryMount: null,
-      notes: "Converts HDMI 2.0 (up to 2160p60) to dual 12G-SDI. Rack-mount, Ethernet control. Optional optical SFP. W-TERAMIN-02.",
+      powerConsumption: 12, batteryMount: null,
+      notes: "Converts HDMI 2.0 (up to 2160p60) to dual 12G-SDI. Rack-mount, Ethernet control. Optional optical SFP. W-TERAMIN-02. 消費電力 約12W (Source: blackmagicdesign.com/products/teranexmini/techspecs/W-TERAMIN-02)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1723,8 +1723,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       size: null, resolution: null, brightness: null, hdr: null, recorder: false,
       inputs:  [{ type: "SDI",  standard: "12G", count: 1 }],
       outputs: [{ type: "HDMI", standard: "2.0", count: 1 }],
-      powerConsumption: null, batteryMount: null,
-      notes: "Converts SD/HD/2K/4K 12G-SDI to HDMI 2.0 (up to 2160p60). Rack-mount, Ethernet control. Source URL: blackmagicdesign.com/products/teranexmini/techspecs",
+      powerConsumption: 12, batteryMount: null,
+      notes: "Converts SD/HD/2K/4K 12G-SDI to HDMI 2.0 (up to 2160p60). Rack-mount, Ethernet control. 消費電力 約12W (Source: blackmagicdesign.com/products/teranexmini/techspecs)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1747,8 +1747,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 1 },
         { type: "HDMI", standard: null,  count: 1 },
       ],
-      powerConsumption: null, batteryMount: null,
-      notes: "4×SD/HD-SDI to quad-split on 1 HDMI display. 1×HD-SDI multiview output. On-screen labels and audio meters. W-MVW-03. HDL-MULTIP3G/04HD.",
+      powerConsumption: 9, batteryMount: null,
+      notes: "4×SD/HD-SDI to quad-split on 1 HDMI display. 1×HD-SDI multiview output. On-screen labels and audio meters. W-MVW-03. HDL-MULTIP3G/04HD. 消費電力 約9W (Source: blackmagicdesign.com/products/multiview/techspecs/W-MVW-03)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1773,8 +1773,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "6G",  count: 5 },
         { type: "HDMI", standard: null,  count: 1 },
       ],
-      powerConsumption: null, batteryMount: null,
-      notes: "4×SD/HD/6G-SDI with 4 loop-through outputs + 1 HD/Ultra HD SDI program output + HDMI. W-MVW-02. HDL-MULTIP3G/04.",
+      powerConsumption: 12, batteryMount: null,
+      notes: "4×SD/HD/6G-SDI with 4 loop-through outputs + 1 HD/Ultra HD SDI program output + HDMI. W-MVW-02. HDL-MULTIP3G/04. 消費電力 約12W (Source: blackmagicdesign.com/products/multiview/techspecs/W-MVW-02)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1803,8 +1803,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "6G",  count: 4 },
         { type: "HDMI", standard: null,  count: 1 },
       ],
-      powerConsumption: null, batteryMount: null,
-      notes: "16×SD/HD/6G-SDI inputs. Multiview outputs: 2×HD-SDI + 2×6G-SDI + 1×HDMI. 2×2/3×3/4×4 grid or SOLO. Front-panel router controls.",
+      powerConsumption: 45, batteryMount: null,
+      notes: "16×SD/HD/6G-SDI inputs. Multiview outputs: 2×HD-SDI + 2×6G-SDI + 1×HDMI. 2×2/3×3/4×4 grid or SOLO. Front-panel router controls. 消費電力 約45W (Source: blackmagicdesign.com/products/multiview/techspecs/W-MVW-01)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1849,8 +1849,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1 },
         { type: "SDI",  standard: "3G",  count: 4 },
       ],
-      powerConsumption: null, batteryMount: null,
-      notes: "Cross-converter with scaling and frame rate conversion. Outputs: 1×HDMI + 2×SDI loop-through + 2×SDI converted. Supports 3G Level A/B. Source URL: decimator.com/Products/MiniConverters/MD-HX/MD-HX.html",
+      powerConsumption: 5, batteryMount: null,
+      notes: "Cross-converter with scaling and frame rate conversion. Outputs: 1×HDMI + 2×SDI loop-through + 2×SDI converted. Supports 3G Level A/B. 消費電力 約5W (Source: decimator.com/Products/MiniConverters/MD-HX/MD-HX.html)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1879,8 +1879,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1 },
         { type: "SDI",  standard: "3G",  count: 1 },
       ],
-      powerConsumption: null, batteryMount: null,
-      notes: "Bi-directional HDMI⇔SDI converter. Auto-routes single active input; simultaneous cross-conversion when both connected. Up to 1080p60. USB powered (under 2.5W). Source URL: decimator.com/Products/MiniConverters/MD-LX/MD-LX.html",
+      powerConsumption: 3, batteryMount: null,
+      notes: "Bi-directional HDMI⇔SDI converter. Auto-routes single active input; simultaneous cross-conversion when both connected. Up to 1080p60. USB powered (under 2.5W). 消費電力 約3W (Source: decimator.com/Products/MiniConverters/MD-LX/MD-LX.html)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1906,7 +1906,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G",  count: 1 },
       ],
       powerConsumption: null, batteryMount: null,
-      notes: "Quad SDI→HDMI multiviewer. Each of 4 mini-HDMI outputs shows any input or quad-split. 1×SDI multiview output. Source URL: decimator.com/Products/MultiViewers/DMON-4S%20MultiViewer/DMON-4S.html",
+      notes: "Quad SDI→HDMI multiviewer. Each of 4 mini-HDMI outputs shows any input or quad-split. 1×SDI multiview output. powerConsumption 要確認 (Source: decimator.com/Products/MultiViewers/DMON-4S%20MultiViewer/DMON-4S.html)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1935,7 +1935,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1 },
       ],
       powerConsumption: null, batteryMount: null,
-      notes: "16-channel SDI multiviewer. 1×3G-SDI + 1×HDMI output. Custom layout support. GPI tally. RS-422/485. Source URL: decimator.com/Products/MultiViewers/DMON-16S%20MultiViewer/DMON-16S.html",
+      notes: "16-channel SDI multiviewer. 1×3G-SDI + 1×HDMI output. Custom layout support. GPI tally. RS-422/485. powerConsumption 要確認 (Source: decimator.com/Products/MultiViewers/DMON-16S%20MultiViewer/DMON-16S.html)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
