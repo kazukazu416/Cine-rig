@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   ReactFlow, Background, Controls, MiniMap,
-  useNodesState, useEdgesState, addEdge,
+  useNodesState, useEdgesState, addEdge, useReactFlow,
   type Node, type Edge, type Connection, type NodeChange, type EdgeChange,
   type OnReconnect, type IsValidConnection,
 } from "@xyflow/react";
@@ -15,8 +15,10 @@ import { EdgePanel } from "./EdgePanel";
 import { Toast, type ToastItem } from "./Toast";
 import { ProjectPanel, saveProject } from "./ProjectPanel";
 import { InfoPanel } from "./InfoPanel";
-import type { Scene, Project } from "./types";
-import { CABLE_COLORS, CABLE_TYPES } from "./types";
+import { Modal } from "./Modal";
+import type { Scene, Project, SceneMonitorRole } from "./types";
+import { CABLE_COLORS, CABLE_TYPES, SCENE_ROLE_LABELS } from "./types";
+import { DB, type EquipmentModelId } from "./equipmentDB";
 
 const nodeTypes = { equipment: EquipmentNode };
 const edgeTypes = { custom: CustomEdge };
@@ -91,6 +93,12 @@ export default function App() {
 
   const [projectMeta, setProjectMeta] = useState(newProjectMeta);
   const [showProjectPanel, setShowProjectPanel] = useState(false);
+
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [dropMonitorPending, setDropMonitorPending] = useState<{ modelId: string; pos: { x: number; y: number } } | null>(null);
+  const [dropMonitorRole, setDropMonitorRole] = useState<SceneMonitorRole>("director");
+
+  const { screenToFlowPosition } = useReactFlow();
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -291,6 +299,79 @@ export default function App() {
     });
   }, [scene, buildAutoLayout, setRfNodes, setRfEdges]);
 
+  // ── Drag & drop from library ──────────────────────────────────────────────
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Element | null)) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    const raw = event.dataTransfer.getData("application/cinerig-equipment");
+    if (!raw) return;
+
+    const { category, modelId } = JSON.parse(raw) as { category: string; modelId: string };
+    const pos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+    const ts = String(Date.now());
+
+    if (category === "camera") {
+      const id = `cam${ts}`;
+      positionsRef.current[`${id}_${modelId}`] = pos;
+      savePositions(positionsRef.current);
+      setScene(prev => ({ ...prev, cameras: [...prev.cameras, { id, model: modelId }] }));
+    } else if (category === "monitor") {
+      setDropMonitorPending({ modelId, pos });
+      setDropMonitorRole("director");
+    } else if (category === "wireless") {
+      const wsId = `ws${ts}`;
+      const isTx = modelId.includes("_tx");
+      const txModel = isTx ? modelId : "wireless_tx";
+      const rxModel = isTx ? "wireless_rx" : modelId;
+      positionsRef.current[`${wsId}_tx_${txModel}`] = pos;
+      savePositions(positionsRef.current);
+      setScene(prev => ({
+        ...prev,
+        wirelessSets: [...prev.wirelessSets, {
+          id: wsId, txModel,
+          rxUnits: [{ id: `${wsId}_rx1`, model: rxModel }],
+          sourceId: prev.cameras[0]?.id ?? "",
+        }],
+      }));
+    } else if (category === "converter") {
+      const id = `conv${ts}`;
+      positionsRef.current[`${id}_${modelId}`] = pos;
+      savePositions(positionsRef.current);
+      setScene(prev => ({ ...prev, converters: [...(prev.converters ?? []), { id, model: modelId }] }));
+    } else if (category === "multiviewer") {
+      const id = `mv${ts}`;
+      positionsRef.current[`${id}_${modelId}`] = pos;
+      savePositions(positionsRef.current);
+      setScene(prev => ({ ...prev, multiviewers: [...(prev.multiviewers ?? []), { id, model: modelId }] }));
+    }
+  }, [screenToFlowPosition]);
+
+  const confirmDropMonitor = useCallback(() => {
+    if (!dropMonitorPending) return;
+    const { modelId, pos } = dropMonitorPending;
+    const id = `mon${Date.now()}`;
+    positionsRef.current[`${id}_${modelId}`] = pos;
+    savePositions(positionsRef.current);
+    setScene(prev => ({
+      ...prev,
+      monitors: [...prev.monitors, { id, model: modelId, role: dropMonitorRole }],
+    }));
+    setDropMonitorPending(null);
+  }, [dropMonitorPending, dropMonitorRole]);
+
   // ── Project handlers ──────────────────────────────────────────────────────
 
   const handleLoadProject = useCallback((p: Project) => {
@@ -386,7 +467,21 @@ export default function App() {
 
         {/* Centre: Canvas + Info Panel */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <div style={{ flex: 1, position: "relative", background: "#FAFAFA", overflow: "hidden" }}>
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          style={{ flex: 1, position: "relative", background: "#FAFAFA", overflow: "hidden" }}
+        >
+          {isDragOver && (
+            <div style={{
+              position: "absolute", inset: 0,
+              border: "2px dashed #005BA6",
+              background: "rgba(0,91,166,0.04)",
+              pointerEvents: "none",
+              zIndex: 100,
+            }} />
+          )}
           <ReactFlow
             nodes={rfNodes}
             edges={rfEdges}
@@ -487,6 +582,37 @@ export default function App() {
           edges={rfEdges}
         />
       </div>
+
+      {/* Monitor role modal (drag & drop) */}
+      {dropMonitorPending && (
+        <Modal
+          title="モニターの役割を選択"
+          onClose={() => setDropMonitorPending(null)}
+          onConfirm={confirmDropMonitor}
+          confirmLabel="追加"
+          width={320}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ fontSize: 12, color: "#1d1d1f", fontWeight: 600 }}>
+              {DB[dropMonitorPending.modelId as EquipmentModelId]?.name ?? dropMonitorPending.modelId}
+            </div>
+            <select
+              value={dropMonitorRole}
+              onChange={e => setDropMonitorRole(e.target.value as SceneMonitorRole)}
+              style={{
+                background: "#FAFAFA", border: "1px solid rgba(0,0,0,0.08)",
+                borderRadius: 5, padding: "6px 8px", fontSize: 12, color: "#1d1d1f",
+                outline: "none", cursor: "pointer", width: "100%",
+                fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
+              }}
+            >
+              {(Object.entries(SCENE_ROLE_LABELS) as [SceneMonitorRole, string][]).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          </div>
+        </Modal>
+      )}
 
       {/* Project Panel (floating) */}
       {showProjectPanel && (

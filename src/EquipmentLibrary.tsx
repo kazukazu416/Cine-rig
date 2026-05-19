@@ -32,28 +32,58 @@ const RECORDER_IDS: EquipmentModelId[] = [
 
 // Category accent colors match TYPE_COLOR in EquipmentNode
 const SECTION_META = [
-  { label: "カメラ",           ids: CAMERA_IDS as EquipmentModelId[],              dot: "#30d158" },
-  { label: "モニター",         ids: MONITOR_MODELS as EquipmentModelId[],           dot: "#8e8e93" },
-  { label: "ワイヤレス",       ids: WIRELESS_IDS,                                   dot: "#ff9f0a" },
-  { label: "レコーダー",       ids: RECORDER_IDS,                                   dot: "#bf5af2" },
-  { label: "コンバーター",     ids: CONVERTER_MODELS as EquipmentModelId[],         dot: "#0ea5e9" },
-  { label: "マルチビューワー", ids: MULTIVIEWER_MODELS as EquipmentModelId[],       dot: "#22c55e" },
+  { label: "カメラ",           category: "camera",      ids: CAMERA_IDS as EquipmentModelId[],              dot: "#30d158" },
+  { label: "モニター",         category: "monitor",     ids: MONITOR_MODELS as EquipmentModelId[],           dot: "#8e8e93" },
+  { label: "ワイヤレス",       category: "wireless",    ids: WIRELESS_IDS,                                   dot: "#ff9f0a" },
+  { label: "レコーダー",       category: "recorder",    ids: RECORDER_IDS,                                   dot: "#bf5af2" },
+  { label: "コンバーター",     category: "converter",   ids: CONVERTER_MODELS as EquipmentModelId[],         dot: "#0ea5e9" },
+  { label: "マルチビューワー", category: "multiviewer", ids: MULTIVIEWER_MODELS as EquipmentModelId[],       dot: "#22c55e" },
 ];
 
-function LibraryItem({ modelId }: { modelId: EquipmentModelId }) {
+function LibraryItem({ modelId, category }: { modelId: EquipmentModelId; category: string }) {
   const [hovered, setHovered] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const tmpl = DB[modelId];
   if (!tmpl) return null;
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("application/cinerig-equipment", JSON.stringify({ category, modelId }));
+    e.dataTransfer.effectAllowed = "copy";
+    setDragging(true);
+
+    const ghost = document.createElement("div");
+    ghost.style.cssText = [
+      "position:fixed", "top:-1000px", "left:-1000px",
+      "background:#FFFFFF", "border:1px solid rgba(0,0,0,0.15)",
+      "border-radius:6px", "padding:6px 12px",
+      "font-family:-apple-system,'SF Pro Display',Inter,sans-serif",
+      "font-size:11px", "font-weight:600", "color:#1d1d1f",
+      "opacity:0.7", "white-space:nowrap",
+      "box-shadow:0 4px 16px rgba(0,0,0,0.18)",
+      "pointer-events:none",
+    ].join(";");
+    ghost.textContent = tmpl.name;
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+    requestAnimationFrame(() => document.body.removeChild(ghost));
+  };
+
+  const handleDragEnd = () => setDragging(false);
+
   return (
     <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         padding: "5px 10px",
         borderRadius: 5,
         background: hovered ? C.hoverBg : "transparent",
-        cursor: "default",
+        cursor: dragging ? "grabbing" : "grab",
         transition: "background 0.2s ease-out",
+        userSelect: "none",
       }}
     >
       <div style={{ fontSize: 11, fontWeight: 500, color: C.text, lineHeight: 1.3 }}>
@@ -174,7 +204,7 @@ export function EquipmentLibrary() {
 
       {/* Sections */}
       <div style={{ flex: 1, overflowY: "auto" }}>
-        {SECTION_META.map(({ label, ids, dot }) => {
+        {SECTION_META.map(({ label, category, ids, dot }) => {
           const filtered = q
             ? ids.filter(id => {
                 const tmpl = DB[id];
@@ -218,12 +248,12 @@ export function EquipmentLibrary() {
                           }}>
                             {manufacturer}
                           </div>
-                          {visible.map(id => <LibraryItem key={id} modelId={id as EquipmentModelId} />)}
+                          {visible.map(id => <LibraryItem key={id} modelId={id as EquipmentModelId} category="camera" />)}
                         </div>
                       );
                     })
                   ) : (
-                    filtered.map(id => <LibraryItem key={id} modelId={id} />)
+                    filtered.map(id => <LibraryItem key={id} modelId={id} category={category} />)
                   )}
                 </div>
               )}

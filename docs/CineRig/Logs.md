@@ -1,3 +1,31 @@
+## 2026-05-19 (8)
+
+### ライブラリ → キャンバスへのドラッグ&ドロップ追加
+
+**対応ファイル:** main.tsx / EquipmentLibrary.tsx / App.tsx
+
+**main.tsx:**
+- `<ReactFlowProvider>` で App をラップ（`useReactFlow()` を App 内で使えるようにするため）
+
+**EquipmentLibrary.tsx:**
+- `SECTION_META` に `category` フィールドを追加
+- `LibraryItem` を draggable に変更
+  - `onDragStart`: `dataTransfer` に `{ category, modelId }` をセット
+  - ドラッグゴースト（半透明カード）を `setDragImage` で設定
+  - ドラッグ中は cursor: grabbing
+- `LibraryItem` 呼び出しに `category` を渡すよう修正
+
+**App.tsx:**
+- `useReactFlow()` で `screenToFlowPosition` を取得
+- `handleDrop`: category に応じてシーンへ追加 + drop 座標を positionsRef に保存
+  - camera / wireless / converter / multiviewer: 即座にシーンへ追加
+  - monitor: 役割選択モーダルを表示してから追加
+- `handleDragOver` / `handleDragLeave`: ドロップ可能エリアのハイライト（青破線ボーダー）
+- `confirmDropMonitor`: モニター役割を確定して追加
+- ドロップ時のモーダル（`<Modal>`）を追加
+
+---
+
 ## 2026-05-19 (7)
 
 ### InfoPanel チェックタブにコンバーター・マルチビューワーの未接続エラーを追加
