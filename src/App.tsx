@@ -13,7 +13,7 @@ import { ScenePanel } from "./ScenePanel";
 import { EquipmentLibrary } from "./EquipmentLibrary";
 import { EdgePanel } from "./EdgePanel";
 import { Toast, type ToastItem } from "./Toast";
-import { ProjectPanel, saveProject } from "./ProjectPanel";
+import { ProjectLibrary, NewProjectModal, saveProject } from "./ProjectPanel";
 import { InfoPanel } from "./InfoPanel";
 import { Modal } from "./Modal";
 import type { Scene, Project, SceneMonitorRole } from "./types";
@@ -92,7 +92,11 @@ export default function App() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const [projectMeta, setProjectMeta] = useState(newProjectMeta);
-  const [showProjectPanel, setShowProjectPanel] = useState(false);
+  const [showLibrary,    setShowLibrary]    = useState(false);
+  const [showNewProject, setShowNewProject] = useState(false);
+  const [editingName,    setEditingName]    = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
+  const [lastSavedScene, setLastSavedScene] = useState<Scene>(INITIAL_SCENE);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropMonitorPending, setDropMonitorPending] = useState<{ modelId: string; pos: { x: number; y: number } } | null>(null);
@@ -299,6 +303,31 @@ export default function App() {
     });
   }, [scene, buildAutoLayout, setRfNodes, setRfEdges]);
 
+  // ── Save status ───────────────────────────────────────────────────────────
+
+  // Mark unsaved whenever scene changes relative to last save
+  useEffect(() => {
+    if (JSON.stringify(scene) !== JSON.stringify(lastSavedScene)) {
+      setSaveStatus("unsaved");
+    }
+  }, [scene, lastSavedScene]);
+
+  const doSave = useCallback(() => {
+    setSaveStatus("saving");
+    const p = { ...projectMeta, date: new Date().toISOString(), scene };
+    saveProject(p);
+    setProjectMeta(prev => ({ ...prev, date: p.date }));
+    setLastSavedScene(scene);
+    setSaveStatus("saved");
+  }, [projectMeta, scene]);
+
+  // Auto-save every 30 seconds when unsaved
+  useEffect(() => {
+    if (saveStatus !== "unsaved") return;
+    const id = setTimeout(doSave, 30_000);
+    return () => clearTimeout(id);
+  }, [saveStatus, doSave]);
+
   // ── Drag & drop from library ──────────────────────────────────────────────
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
@@ -377,24 +406,24 @@ export default function App() {
   const handleLoadProject = useCallback((p: Project) => {
     setScene(p.scene);
     setProjectMeta({ id: p.id, name: p.name, author: p.author, notes: p.notes ?? "", date: p.date });
+    setLastSavedScene(p.scene);
+    setSaveStatus("saved");
     positionsRef.current = {};
     savePositions({});
-    setShowProjectPanel(false);
+    setShowLibrary(false);
   }, []);
 
-  const handleNewProject = useCallback(() => {
+  const handleNewProject = useCallback((name: string, author: string, notes: string) => {
+    const meta = { ...newProjectMeta(), name, author, notes };
     setScene(INITIAL_SCENE);
-    setProjectMeta(newProjectMeta());
+    setProjectMeta(meta);
+    setLastSavedScene(INITIAL_SCENE);
+    setSaveStatus("unsaved");
     positionsRef.current = {};
     savePositions({});
-    setShowProjectPanel(false);
+    setShowNewProject(false);
+    setShowLibrary(false);
   }, []);
-
-  const handleSaveProject = useCallback(() => {
-    const p: Project = { ...projectMeta, date: new Date().toISOString(), scene };
-    saveProject(p);
-    setProjectMeta(prev => ({ ...prev, date: p.date }));
-  }, [projectMeta, scene]);
 
   // ── Derived state ─────────────────────────────────────────────────────────
 
@@ -409,50 +438,95 @@ export default function App() {
 
       {/* ── Top bar ───────────────────────────────────────────────── */}
       <div style={{
-        height: 36,
+        height: 38,
         flexShrink: 0,
         background: "#FFFFFF",
         borderBottom: "1px solid rgba(0,0,0,0.08)",
         display: "flex",
         alignItems: "center",
-        padding: "0 16px",
-        gap: 12,
+        padding: "0 14px",
+        gap: 10,
         zIndex: 50,
       }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#1d1d1f", letterSpacing: -0.4 }}>
+        {/* App name */}
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#1d1d1f", letterSpacing: -0.4, flexShrink: 0 }}>
           CineRig
         </span>
 
         <div style={{ width: 1, height: 16, background: "rgba(0,0,0,0.10)", flexShrink: 0 }} />
 
-        <button
-          onClick={() => setShowProjectPanel(v => !v)}
-          style={{
-            background: showProjectPanel ? "#E6F0FA" : "transparent",
-            border: `1px solid ${showProjectPanel ? "#005BA6" : "rgba(0,0,0,0.10)"}`,
-            color: showProjectPanel ? "#005BA6" : "#1d1d1f",
-            borderRadius: 5,
-            padding: "3px 10px",
-            fontSize: 11, fontWeight: 600,
-            cursor: "pointer",
-            maxWidth: 160,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            fontFamily: "inherit",
-          }}
-          title="案件管理"
-        >
-          {projectMeta.name}
-        </button>
+        {/* Project name (inline editable) */}
+        {editingName ? (
+          <input
+            autoFocus
+            value={projectMeta.name}
+            onChange={e => setProjectMeta(p => ({ ...p, name: e.target.value }))}
+            onBlur={() => setEditingName(false)}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === "Escape") setEditingName(false); }}
+            style={{
+              background: "#F5F5F7",
+              border: "1.5px solid #005BA6",
+              borderRadius: 5,
+              padding: "3px 8px",
+              fontSize: 12, fontWeight: 600, color: "#1d1d1f",
+              outline: "none",
+              width: 180,
+              fontFamily: "inherit",
+            }}
+          />
+        ) : (
+          <button
+            onClick={() => setEditingName(true)}
+            title="クリックして案件名を編集"
+            style={{
+              background: "transparent",
+              border: "1px solid transparent",
+              borderRadius: 5,
+              padding: "3px 8px",
+              fontSize: 12, fontWeight: 600, color: "#1d1d1f",
+              cursor: "text",
+              maxWidth: 200,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              fontFamily: "inherit",
+              transition: "background 0.15s, border-color 0.15s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "#F5F5F7";
+              e.currentTarget.style.borderColor = "rgba(0,0,0,0.10)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.borderColor = "transparent";
+            }}
+          >
+            {projectMeta.name}
+          </button>
+        )}
 
-        <span style={{ fontSize: 11, color: "#86868b" }}>
-          {scene.cameras.length} cam · {scene.monitors.length} mon · {scene.wirelessSets.length} wireless
+        {/* Icon buttons: 📁 💾 ＋ */}
+        <HeaderIconBtn onClick={() => setShowLibrary(true)} title="案件一覧を開く">📁</HeaderIconBtn>
+        <HeaderIconBtn onClick={doSave} title="保存" accent={saveStatus === "unsaved"}>💾</HeaderIconBtn>
+        <HeaderIconBtn onClick={() => setShowNewProject(true)} title="新規作成">＋</HeaderIconBtn>
+
+        {/* Save status */}
+        <span style={{
+          fontSize: 10, flexShrink: 0,
+          color: saveStatus === "unsaved" ? "#f59e0b"
+               : saveStatus === "saving"  ? "#86868b"
+               : "#30d158",
+          fontWeight: 500,
+          transition: "color 0.3s",
+        }}>
+          {saveStatus === "unsaved" ? "● 未保存"
+         : saveStatus === "saving"  ? "保存中..."
+         : "✓ 保存済み"}
         </span>
 
         <div style={{ flex: 1 }} />
 
-        <TopBarBtn onClick={handleSaveProject} title="現在の案件を保存">
-          保存
-        </TopBarBtn>
+        <span style={{ fontSize: 11, color: "#86868b", flexShrink: 0 }}>
+          {scene.cameras.length} cam · {scene.monitors.length} mon · {scene.wirelessSets.length} wireless
+        </span>
 
         <TopBarBtn onClick={handleResetLayout} title="配線図を自動レイアウトに戻す">
           ⟳ リセット
@@ -614,18 +688,55 @@ export default function App() {
         </Modal>
       )}
 
-      {/* Project Panel (floating) */}
-      {showProjectPanel && (
-        <ProjectPanel
-          meta={projectMeta}
-          scene={scene}
-          onChangeMeta={setProjectMeta}
+      {/* Project Library modal */}
+      {showLibrary && (
+        <ProjectLibrary
           onLoad={handleLoadProject}
-          onNew={handleNewProject}
-          onClose={() => setShowProjectPanel(false)}
+          onClose={() => setShowLibrary(false)}
+          onNew={() => { setShowLibrary(false); setShowNewProject(true); }}
+        />
+      )}
+
+      {/* New project modal */}
+      {showNewProject && (
+        <NewProjectModal
+          hasUnsaved={saveStatus === "unsaved"}
+          onConfirm={handleNewProject}
+          onClose={() => setShowNewProject(false)}
         />
       )}
     </div>
+  );
+}
+
+function HeaderIconBtn({ onClick, title, accent, children }: {
+  onClick: () => void;
+  title?: string;
+  accent?: boolean;
+  children: React.ReactNode;
+}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? (accent ? "#E6F0FA" : "#F5F5F7") : "transparent",
+        border: `1px solid ${accent ? "#005BA6" : hov ? "rgba(0,0,0,0.10)" : "transparent"}`,
+        color: accent ? "#005BA6" : "#6e6e73",
+        borderRadius: 6,
+        padding: "3px 7px",
+        fontSize: 13, lineHeight: 1,
+        cursor: "pointer",
+        transition: "background 0.15s, border-color 0.15s",
+        fontFamily: "inherit",
+        flexShrink: 0,
+      }}
+    >
+      {children}
+    </button>
   );
 }
 
