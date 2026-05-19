@@ -1,94 +1,35 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { Setup, CameraInput, Scene } from "./types";
-import { getRoleLabel, CABLE_COLORS, SCENE_ROLE_LABELS } from "./types";
+import { Position } from "@xyflow/react";
+import type { Setup, Scene, SceneMonitorRole, Equipment } from "./types";
+import { SCENE_ROLE_LABELS, CABLE_COLORS } from "./types";
 
-// ── Legacy layout (CameraInput-based) ────────────────────────────────────────
-
-const TYPE_X: Record<string, number> = {
-  camera:      50,
-  wireless_tx: 320,
-  wireless_rx: 590,
-  monitor:     860,
-};
-
-const MONITOR_SPACING = 180;
-const RIG_GAP = 90;
-
-function buildSubtitleMap(inputs: CameraInput[]): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const cam of inputs) {
-    const uid = `rig_${cam.id}`;
-    cam.monitors.forEach((mon, i) => {
-      map[`${uid}_monitor_${i + 1}`] = getRoleLabel(mon.role, mon.customRole);
-    });
-  }
-  return map;
-}
-
-export function setupToFlow(
-  setup: Setup,
-  inputs: CameraInput[]
-): { nodes: Node[]; edges: Edge[] } {
-  const nodes: Node[] = [];
-  const edges: Edge[] = [];
-  const subtitleMap = buildSubtitleMap(inputs);
-
-  let rigStartY = 0;
-
-  for (const input of inputs) {
-    const prefix = `rig_${input.id}_`;
-    const rigEqs = setup.equipments.filter(e => e.id.startsWith(prefix));
-    const monitors = rigEqs.filter(e => e.type === "monitor");
-    const numMons = Math.max(monitors.length, 1);
-    const rigH = numMons * MONITOR_SPACING;
-    const centerY = rigStartY + ((numMons - 1) * MONITOR_SPACING) / 2;
-
-    for (const eq of rigEqs) {
-      const y = eq.type === "monitor"
-        ? rigStartY + monitors.indexOf(eq) * MONITOR_SPACING
-        : centerY;
-
-      nodes.push({
-        id: eq.id,
-        type: "equipment",
-        position: { x: TYPE_X[eq.type] ?? 0, y },
-        data: { equipment: eq, subtitle: subtitleMap[eq.id] },
-      });
-    }
-
-    rigStartY += rigH + RIG_GAP;
-  }
-
-  setup.connections.forEach((conn, i) => {
-    const color = CABLE_COLORS[conn.cableType] ?? "#888";
-    edges.push({
-      id: `e${i}`,
-      source: conn.from.equipmentId,
-      sourceHandle: conn.from.portId,
-      target: conn.to.equipmentId,
-      targetHandle: conn.to.portId,
-      type: "custom",
-      animated: true,
-      reconnectable: true,
-      data: { cableType: conn.cableType, isInvalid: false },
-      style: { stroke: color, strokeWidth: 2.5 },
-    });
-  });
-
-  return { nodes, edges };
-}
-
-// ── Scene-based layout ────────────────────────────────────────────────────────
-
-const SCENE_COL_X: Record<string, number> = {
+// Signal-flow column layout: camera → onboard → TX → RX → focus/director → client → recorder
+const COL_X: Record<string, number> = {
   camera:      60,
-  wireless_tx: 360,
-  wireless_rx: 660,
-  monitor:     960,
-  recorder:    1260,
+  onboard_mon: 300,
+  wireless_tx: 560,
+  wireless_rx: 820,
+  main_mon:    1080,
+  client_mon:  1340,
+  recorder:    1600,
 };
+const V_SPACING = 200;
 
-const V_SPACING = 210;
+const WS_PALETTE = [
+  "#ff9f0a", "#0ea5e9", "#a855f7", "#22c55e", "#ef4444", "#ec4899",
+];
+
+function monColKey(role: SceneMonitorRole): string {
+  if (role === "onboard") return "onboard_mon";
+  if (role === "client")  return "client_mon";
+  return "main_mon";
+}
+
+// Build handle ID from equipment ID and port template index.
+// Matches the formula in instantiate(): `${uid}_${modelId}_p${i}`
+function handleId(equipmentId: string, portIdx: number): string {
+  return `${equipmentId}_p${portIdx}`;
+}
 
 export function sceneToFlow(
   setup: Setup,
@@ -97,72 +38,227 @@ export function sceneToFlow(
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  // Subtitle: monitor equipment id → role label
+  const eqById = new Map(setup.equipments.map(e => [e.id, e]));
+
   const subtitleMap: Record<string, string> = {};
   for (const mon of scene.monitors) {
     subtitleMap[`${mon.id}_${mon.model}`] = SCENE_ROLE_LABELS[mon.role] ?? mon.role;
   }
 
-  // Y position for each monitor (in scene order)
-  const monitorY: Record<string, number> = {};
-  scene.monitors.forEach((mon, i) => {
-    monitorY[`${mon.id}_${mon.model}`] = i * V_SPACING;
-  });
-
-  // Camera Y = vertical centre of its assigned monitors
-  const cameraY: Record<string, number> = {};
-  scene.cameras.forEach((cam, ci) => {
-    const assigned = scene.monitors.filter(m => m.cameraId === cam.id);
-    const ys = assigned.map(m => monitorY[`${m.id}_${m.model}`] ?? 0);
-    cameraY[`${cam.id}_${cam.model}`] = ys.length
-      ? ys.reduce((a, b) => a + b, 0) / ys.length
-      : ci * V_SPACING;
-  });
-
-  // Wireless TX/RX Y = vertical centre of destination monitors
-  const wirelessY: Record<string, number> = {};
-  for (const ws of scene.wirelessSets) {
-    const dests = ws.destinationIds.map(id => {
-      const m = scene.monitors.find(m => m.id === id);
-      return m ? (monitorY[`${m.id}_${m.model}`] ?? 0) : 0;
-    });
-    const cy = dests.length
-      ? dests.reduce((a, b) => a + b, 0) / dests.length
-      : (cameraY[`${ws.sourceId}_${scene.cameras.find(c => c.id === ws.sourceId)?.model ?? ""}`] ?? 0);
-    wirelessY[`${ws.id}_tx_${ws.txModel ?? "wireless_tx"}`] = cy;
-    wirelessY[`${ws.id}_rx_${ws.rxModel ?? "wireless_rx"}`] = cy;
-  }
-
-  for (const eq of setup.equipments) {
-    let y = 0;
-    if      (eq.type === "camera")      y = cameraY[eq.id]   ?? 0;
-    else if (eq.type === "wireless_tx") y = wirelessY[eq.id] ?? 0;
-    else if (eq.type === "wireless_rx") y = wirelessY[eq.id] ?? 0;
-    else if (eq.type === "monitor")     y = monitorY[eq.id]  ?? 0;
-
+  const yIdx: Record<string, number> = {};
+  const addNode = (id: string, colKey: string, subtitle?: string, wsColor?: string) => {
+    const eq = eqById.get(id);
+    if (!eq) return;
+    const y = (yIdx[colKey] ?? 0) * V_SPACING;
+    yIdx[colKey] = (yIdx[colKey] ?? 0) + 1;
     nodes.push({
       id: eq.id,
       type: "equipment",
-      position: { x: SCENE_COL_X[eq.type] ?? 60, y },
-      data: { equipment: eq, subtitle: subtitleMap[eq.id] },
+      position: { x: COL_X[colKey] ?? 60, y },
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
+      data: { equipment: eq, subtitle, ...(wsColor ? { wsColor } : {}), connectedPortIds: [] },
+    });
+  };
+
+  // Col 1: Cameras
+  for (const cam of scene.cameras)
+    addNode(`${cam.id}_${cam.model}`, "camera");
+
+  // Col 2: Onboard monitors
+  for (const mon of scene.monitors) {
+    if (mon.role === "onboard")
+      addNode(`${mon.id}_${mon.model}`, "onboard_mon", subtitleMap[`${mon.id}_${mon.model}`]);
+  }
+
+  const multiWs = scene.wirelessSets.length > 1;
+
+  // Col 3: Wireless TX
+  for (const [wsIdx, ws] of scene.wirelessSets.entries()) {
+    const wsColor = WS_PALETTE[wsIdx % WS_PALETTE.length];
+    const txSub = multiWs ? `TX · ${wsIdx + 1}` : undefined;
+    addNode(`${ws.id}_tx_${ws.txModel ?? "wireless_tx"}`, "wireless_tx", txSub, wsColor);
+  }
+
+  // Col 4: Wireless RX
+  for (const [wsIdx, ws] of scene.wirelessSets.entries()) {
+    const wsColor = WS_PALETTE[wsIdx % WS_PALETTE.length];
+    const rxSub = multiWs ? `RX · ${wsIdx + 1}` : undefined;
+    for (const rx of ws.rxUnits)
+      addNode(`${rx.id}_${rx.model}`, "wireless_rx", rxSub, wsColor);
+  }
+
+  // Col 5: Focus / Director / Frontline / Other monitors
+  for (const mon of scene.monitors) {
+    if (mon.role !== "onboard" && mon.role !== "client")
+      addNode(`${mon.id}_${mon.model}`, "main_mon", subtitleMap[`${mon.id}_${mon.model}`]);
+  }
+
+  // Col 6: Client monitors
+  for (const mon of scene.monitors) {
+    if (mon.role === "client")
+      addNode(`${mon.id}_${mon.model}`, "client_mon", subtitleMap[`${mon.id}_${mon.model}`]);
+  }
+
+  // Recorders
+  for (const rec of scene.recorders)
+    addNode(`${rec.id}_${rec.model}`, "recorder");
+
+  // ── TX→RX wireless edges ────────────────────────────────────────────────────
+  for (const ws of scene.wirelessSets) {
+    const txId = `${ws.id}_tx_${ws.txModel ?? "wireless_tx"}`;
+    const txEq = eqById.get(txId);
+    const txHandle = txEq?.ports.find(p => p.type === "WIRELESS" && p.direction === "out")?.id;
+    for (const rx of ws.rxUnits) {
+      const rxId = `${rx.id}_${rx.model}`;
+      const rxEq = eqById.get(rxId);
+      const rxHandle = rxEq?.ports.find(p => p.type === "WIRELESS" && p.direction === "in")?.id;
+      if (!txHandle || !rxHandle) continue;
+      edges.push({
+        id: `rf_${ws.id}_${rx.id}`,
+        source: txId,
+        target: rxId,
+        sourceHandle: txHandle,
+        targetHandle: rxHandle,
+        type: "custom",
+        selectable: false,
+        deletable: false,
+        data: { cableType: "WIRELESS", isInvalid: false, locked: false },
+        style: { stroke: CABLE_COLORS["WIRELESS"], strokeWidth: 2 },
+      });
+    }
+  }
+
+  // ── Auto-wired edges from MonitorInstance.sourceId ──────────────────────────
+  const camMap = new Map(scene.cameras.map(c => [c.id, c]));
+  const rxMap = new Map<string, { rxId: string; rxModel: string }>();
+  for (const ws of scene.wirelessSets) {
+    for (const rx of ws.rxUnits) {
+      rxMap.set(rx.id, { rxId: rx.id, rxModel: rx.model });
+    }
+  }
+  const monMap = new Map(scene.monitors.map(m => [m.id, m]));
+
+  for (const mon of scene.monitors) {
+    if (!mon.sourceId || !mon.cableType) continue;
+
+    const cableType = mon.cableType;
+    const targetNodeId = `${mon.id}_${mon.model}`;
+    const targetEq = eqById.get(targetNodeId);
+    if (!targetEq) continue;
+
+    // Target handle: use stored port index if available, else auto-select
+    let targetHandle: string | undefined;
+    if (mon.targetPortIdx !== undefined) {
+      targetHandle = handleId(targetNodeId, mon.targetPortIdx);
+      // Verify it exists in the actual equipment
+      if (!targetEq.ports.some(p => p.id === targetHandle)) {
+        targetHandle = undefined;
+      }
+    }
+    if (!targetHandle) {
+      targetHandle =
+        targetEq.ports.find(p => p.direction === "in" && p.type === cableType)?.id ??
+        targetEq.ports.find(p => p.direction === "in" && p.type !== "WIRELESS")?.id;
+    }
+    if (!targetHandle) continue;
+
+    // Resolve source node ID
+    let sourceNodeId: string | undefined;
+    const srcCam = camMap.get(mon.sourceId);
+    if (srcCam) sourceNodeId = `${srcCam.id}_${srcCam.model}`;
+    const rxEntry = rxMap.get(mon.sourceId);
+    if (rxEntry) sourceNodeId = `${rxEntry.rxId}_${rxEntry.rxModel}`;
+    const srcMon = monMap.get(mon.sourceId);
+    if (srcMon) sourceNodeId = `${srcMon.id}_${srcMon.model}`;
+    if (!sourceNodeId) continue;
+
+    const sourceEq = eqById.get(sourceNodeId);
+    if (!sourceEq) continue;
+
+    // Source handle: use stored port index if available, else auto-select
+    let sourceHandle: string | undefined;
+    if (mon.sourcePortIdx !== undefined) {
+      sourceHandle = handleId(sourceNodeId, mon.sourcePortIdx);
+      if (!sourceEq.ports.some(p => p.id === sourceHandle)) {
+        sourceHandle = undefined;
+      }
+    }
+    if (!sourceHandle) {
+      sourceHandle =
+        sourceEq.ports.find(p => p.direction === "out" && p.type === cableType)?.id ??
+        sourceEq.ports.find(p => p.direction === "out" && p.type !== "WIRELESS")?.id;
+    }
+    if (!sourceHandle) continue;
+
+    const color = CABLE_COLORS[cableType] ?? "#888";
+    edges.push({
+      id: `auto_${mon.sourceId}_${mon.id}`,
+      source: sourceNodeId,
+      target: targetNodeId,
+      sourceHandle,
+      targetHandle,
+      type: "custom",
+      data: { cableType, isInvalid: false, locked: false },
+      style: { stroke: color, strokeWidth: 2.5 },
     });
   }
 
-  setup.connections.forEach((conn, i) => {
-    const color = CABLE_COLORS[conn.cableType] ?? "#888";
+  // ── Source→TX cable edges (source = camera or monitor loop-through) ──────────
+  const srcTxUsedHandles = new Set(edges.map(e => e.sourceHandle).filter(Boolean) as string[]);
+  for (const ws of scene.wirelessSets) {
+    if (!ws.sourceId) continue;
+    const cam    = scene.cameras.find(c => c.id === ws.sourceId);
+    const srcMon = !cam ? scene.monitors.find(m => m.id === ws.sourceId) : undefined;
+    const src    = cam ?? srcMon;
+    if (!src) continue;
+    const srcNodeId = `${src.id}_${src.model}`;
+    const txModel   = ws.txModel ?? "wireless_tx";
+    const txNodeId  = `${ws.id}_tx_${txModel}`;
+    const srcEq = eqById.get(srcNodeId);
+    const txEq  = eqById.get(txNodeId);
+    if (!srcEq || !txEq) continue;
+    const txInPorts  = txEq.ports.filter(p => p.direction === "in" && p.type !== "WIRELESS");
+    const srcOutPorts = srcEq.ports.filter(p => p.direction === "out" && p.type !== "WIRELESS");
+    let cableType = "";
+    let srcHandle = "";
+    let tgtHandle = "";
+    for (const pass of [0, 1]) {
+      for (const pref of ["SDI", "HDMI"]) {
+        const sp = srcOutPorts.find(p => p.type === pref && (pass === 1 || !srcTxUsedHandles.has(p.id)));
+        const tp = txInPorts.find(p => p.type === pref);
+        if (sp && tp) { srcHandle = sp.id; tgtHandle = tp.id; cableType = pref; break; }
+      }
+      if (cableType) break;
+    }
+    if (!cableType) continue;
     edges.push({
-      id: `e${i}`,
-      source: conn.from.equipmentId,
-      sourceHandle: conn.from.portId,
-      target: conn.to.equipmentId,
-      targetHandle: conn.to.portId,
+      id: `auto_src_tx_${ws.id}`,
+      source: srcNodeId,
+      target: txNodeId,
+      sourceHandle: srcHandle,
+      targetHandle: tgtHandle,
       type: "custom",
-      animated: true,
-      reconnectable: true,
-      data: { cableType: conn.cableType, isInvalid: false },
-      style: { stroke: color, strokeWidth: 2.5 },
+      data: { cableType, isInvalid: false, locked: false },
+      style: { stroke: CABLE_COLORS[cableType] ?? "#888", strokeWidth: 2.5 },
     });
+  }
+
+  // ── Annotate nodes with which of their ports are connected ─────────────────
+  const usedHandles = new Set(
+    edges.flatMap(e => [e.sourceHandle, e.targetHandle].filter(Boolean) as string[])
+  );
+
+  const finalNodes = nodes.map(n => {
+    const eq = n.data.equipment as Equipment;
+    const connectedPortIds = eq.ports
+      .filter(p => usedHandles.has(p.id))
+      .map(p => p.id);
+    return { ...n, data: { ...n.data, connectedPortIds } };
   });
 
-  return { nodes, edges };
+  return { nodes: finalNodes, edges };
 }
+
+// Unused legacy export kept for type compatibility
+export { sceneToFlow as setupToFlow };

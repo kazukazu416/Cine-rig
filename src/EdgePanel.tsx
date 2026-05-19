@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Edge } from "@xyflow/react";
 import { CABLE_TYPES, CABLE_COLORS } from "./types";
 
@@ -5,10 +6,13 @@ interface Props {
   edge: Edge;
   onChangeType: (type: string) => void;
   onDelete: () => void;
+  onToggleLock: () => void;
 }
 
-export function EdgePanel({ edge, onChangeType, onDelete }: Props) {
+export function EdgePanel({ edge, onChangeType, onDelete, onToggleLock }: Props) {
   const current = (edge.data?.cableType as string) ?? "SDI";
+  const locked  = (edge.data?.locked   as boolean) ?? false;
+  const [lockHov, setLockHov] = useState(false);
 
   return (
     <div style={{
@@ -59,6 +63,32 @@ export function EdgePanel({ edge, onChangeType, onDelete }: Props) {
           );
         })}
       </div>
+
+      <div style={{ width: 1, height: 18, background: "rgba(0,0,0,0.08)" }} />
+
+      {/* Lock toggle */}
+      <button
+        onClick={onToggleLock}
+        onMouseEnter={() => setLockHov(true)}
+        onMouseLeave={() => setLockHov(false)}
+        title={locked ? "ロック解除（自動更新を有効にする）" : "ロック（自動更新から除外）"}
+        style={{
+          background: lockHov ? (locked ? "#FFF7ED" : "#EFF5FF") : "transparent",
+          border: "none",
+          color: locked ? "#c2410c" : (lockHov ? "#005BA6" : "#86868b"),
+          cursor: "pointer",
+          fontSize: 11,
+          fontWeight: 600,
+          padding: "2px 6px",
+          borderRadius: 4,
+          display: "flex",
+          alignItems: "center",
+          gap: 3,
+          transition: "background 0.15s, color 0.15s",
+        }}
+      >
+        {locked ? "🔒" : "🔓"}
+      </button>
 
       <div style={{ width: 1, height: 18, background: "rgba(0,0,0,0.08)" }} />
 

@@ -1,3 +1,622 @@
+## 2026-05-19 (2)
+
+### モニターカード「接続先」UI追加
+
+**概要:** OUTポートを持つモニターのカードに「接続先」セクションを追加。モニターのループスルー出力を別のモニターまたはワイヤレス TX に接続できるようになった。
+
+**`setupToFlow.ts`:**
+- Camera→TX エッジ生成を「Source→TX」に拡張
+  - `ws.sourceId` がカメラIDの場合は既存挙動を維持
+  - `ws.sourceId` がモニターIDの場合もエッジを自動生成（ループスルー→TX接続対応）
+  - エッジID: `auto_cam_tx_*` → `auto_src_tx_*`（ロックエッジはsig照合のため影響なし）
+
+**`ScenePanel.tsx`:**
+- `MonitorCard` に新プロップ追加: `allWirelessSets`, `onConnectOut`, `onDisconnectDest`
+- `MonitorCard` 内に「接続先」セクションを追加:
+  - OUTポートなし機種では非表示
+  - 既存接続先を一覧表示（モニター/TX）＋×切断ボタン
+  - 追加フォーム: 出力ポート選択（複数時）→接続先選択（モニター/TX optgroup）→入力ポート選択（複数時）→「接続する」ボタン
+  - 使用済みポート・接続済み接続先は選択肢から除外
+- `WirelessCard` の送信元表示を更新:
+  - `ws.sourceId` がモニターIDの場合、読み取り専用テキスト＋×ボタンで表示
+  - カメラIDの場合は従来のカメラセレクタを表示
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-19
+
+### MonitorCard TS ビルドエラー修正
+
+`ScenePanel.tsx` の `scene.monitors.map()` で `MonitorCard` に必須プロップ（`allRxUnits`, `allMonitors`, `onConnect`, `usedHandles`）が渡されていなかった TS2739 エラーを修正。
+
+- `allRxUnits`: `scene.wirelessSets.flatMap(ws => ws.rxUnits)` で収集
+- `allMonitors`: `scene.monitors` をそのまま渡す
+- `onConnect`: `mon.id` に対して `sourceId / sourcePortIdx / cableType / targetPortIdx` を更新するハンドラを追加
+- `usedHandles`: 既存の `usedHandles` をそのまま渡す
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (16)
+
+### モニタータブ・チェックタブの整合性修正
+
+**問題:** モニタータブで「未接続（赤）」のモニターがあってもチェックタブが「✅ 接続チェックOK」と表示される。
+
+**根本原因:**
+- モニタータブ: `isConnected = !!mon.sourceId`（scene データのみ）
+- チェックタブ（validate）: `!mon.sourceId && !hasEdge`（scene + edges 両方）
+
+手動キャンバス接続の場合、`mon.sourceId` は未設定だがエッジが存在するため、
+チェックタブは OK、モニタータブは赤という不整合が発生していた。
+
+**修正:** `src/InfoPanel.tsx` モニタータブ
+- `isConnected = !!mon.sourceId || !!connEdge` に変更（validate と同一ロジック）
+- `connEdge = edges.find(e => e.targetHandle?.startsWith(monPrefix) && e.data?.cableType !== "WIRELESS")`
+- ケーブルタイプ表示: `mon.cableType` → エッジの `data.cableType` フォールバック
+
+**ビルド:** エラー 0、警告 0
+
+## 2026-05-18 (15)
+
+### 接続チェックバグ修正：TX「チェックOK」誤表示
+
+**根本原因**
+
+`InfoPanel.tsx` validate 関数の `if (ws.sourceId) continue;`（line 75）が、ワイヤレス追加時に常にカメラが設定されるため、常に TX チェックをスキップしていた。加えて `setupToFlow.ts` にカメラ→TX のエッジが存在しなかったため、エッジベースのチェックも常にfalseだった。
+
+**修正内容**
+
+1. **`src/setupToFlow.ts`**: カメラ→TX ケーブルエッジを自動生成するセクションを追加
+   - `ws.sourceId` があるワイヤレスセットに対して、カメラ出力→TX 入力のエッジを生成
+   - SDI を優先、次に HDMI でポートマッチング（既使用ポートを避ける）
+   - `type: "custom"`, `data: { cableType }` で既存エッジと同形式
+
+2. **`src/InfoPanel.tsx`**: validate 関数を全面書き直し（新仕様）
+   - **カメラ**: 少なくとも1つのOUTポートがエッジ接続 → なければ警告
+   - **モニター**: non-WIRELESS INエッジ または scene.sourceId → なければエラー
+   - **TX**: non-WIRELESS INエッジ（`ws.sourceId` 短絡を削除）→ なければ警告
+   - **RX**: WIRELESSエッジでRF IN確認 + 出力エッジ/scene確認 → それぞれ警告
+   - `console.log("[CineRig validate]", ...)` でデバッグ出力追加
+   - `txInputTypes` ヒューリスティックを削除（カメラ→TX エッジが実在するため不要）
+
+**ビルド:** エラー 0、警告 0
+
+## 2026-05-18 (14)
+
+### エラー検知拡張 + モニターカード接続状況リアルタイム表示
+
+**【1. エラー検知拡張】**
+
+`InfoPanel.tsx` の `validate(scene, edges)` に以下のチェックを追加：
+
+- **カメラ出力ポート（⚠️ 警告）**: 各カメラの出力ポートをエッジ・scene monitors・TX接続（`ws.sourceId`+ポートtype一致）で確認。いずれも未使用なら「Sony FX6: SDI OUT が未接続」
+  - カメラ→TX はエッジが存在しないため、`txInputTypes` ヒューリスティックで誤報を抑制
+- **モニター未接続（❌ エラー）**: 既存ロジックを維持（scene + edges）
+- **ワイヤレスTX入力未接続（⚠️ 警告）**: `ws.sourceId` 空かつ TX 入力ハンドルへのエッジなし → 「Wireless TX: 入力未接続」
+- **ワイヤレスRX出力未接続（⚠️ 警告）**: scene + RX出力ポートのエッジで判定 → 「Wireless RX: 出力未接続」
+- `outputPortOptions` / `inputPortOptions` を InfoPanel に追加インポート
+
+**【2. モニターカード接続状況リアルタイム表示】**
+
+`ScenePanel.tsx` の変更：
+
+- `ConnectionInfo` に `cableType?` フィールドを追加
+- `resolveHandleSource(handle, scene)` ヘルパー追加: sourceHandle → { name, portLabel } をシーンの各機材と照合して解決
+- `getMonitorConnectionInfo(mon, scene, edges)` に `edges` 追加:
+  - `mon.sourceId` が空でも、エッジの `targetHandle` がモニターに一致すれば接続情報を解決（手動 canvas 接続対応）
+- MonitorCard 表示フォーマット変更:
+  - 接続済み: `← Sony FX6 / SDI OUT → SDI IN 1`
+  - 未接続: `未接続 ⚠`
+- `cableType` を `mon.cableType` ではなく `connectionInfo.cableType` から表示（エッジ経由接続対応）
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (13)
+
+### 下部パネル表示拡大
+
+- パネル高さ: 108px → 180px
+- タブボタン: padding 5px/10px → 8px/14px、fontSize 10 → 12
+- コンテンツ padding: 16px → 20px、gap 12 → 14
+- ケーブル項目: padding 4px/10px → 8px/14px、fontSize 12 → 13、ケーブル線 height 3 → 4
+- モニター項目: padding 5px/10px → 8px/14px、minWidth 110 → 130、fontSize 11/9/9 → 13/11/11、gap 2 → 4
+- チェック項目: padding 3px/8px → 6px/12px、fontSize 10 → 13、gap 4 → 6、borderRadius 4 → 6
+- チェックOK メッセージ: fontSize 12 → 14
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (12)
+
+### エラーチェックのリアルタイム化（edges + scene + nodes 全対応）
+
+**問題:** `validate(scene)` は scene の `mon.sourceId` のみを見ていたため、手動 canvas 接続（scene 非更新）ではエラーが消えなかった。
+
+**変更内容:**
+
+- `validate(scene, edges)` に signature 変更 — edges も参照して接続判定
+  - モニター: `mon.sourceId` が空でも `targetHandle` が `${mon.id}_${mon.model}_p*` に一致するエッジがあればエラーなし
+  - RX: `sourceId` 未設定でも `sourceHandle` が `${rx.id}_${rx.model}_p*` に一致するエッジがあれば警告なし
+- `useMemo(() => validate(scene, edges), [scene, edges, nodes])` で最適化
+  - scene 変化（機材追加・削除・設定変更）→ 即時再チェック
+  - edges 変化（接続・切断）→ 即時再チェック
+  - nodes 変化（ノード追加・削除）→ 即時再チェック
+- `cableEntries` も `useMemo([edges])` でメモ化
+- `nodes?: Node[]` prop を追加、App.tsx から `nodes={rfNodes}` を渡すように変更
+
+**完了条件の確認:**
+- モニター追加 → 即「未接続」エラー表示 ✓
+- 接続 → 即エラー消去（scene 経由・手動 canvas 両対応）✓
+- 切断 → 即エラー復活 ✓
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (11)
+
+### 手動接続のポート2重接続防止
+
+**変更内容:**
+- `App.tsx` に `isValidConnection` コールバックを追加
+- キャンバス上でエッジを手動ドラッグする際、`rfEdges` から `usedHandles` を構築し、sourceHandle / targetHandle がすでに使用済みのポートへのドロップを拒否
+- React Flow が自動でドラッグ中のハイライトを制御するため、使用済みポートは接続不可として視覚的にもブロックされる
+- `IsValidConnection` 型を `@xyflow/react` からインポートして型安全に実装
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (10)
+
+### isMonitorAvailable バグ修正 + firstFreeIn 型マッチング改善
+
+**問題:** `isMonitorAvailable` が「すべての入力ポートが未使用」の場合のみ true を返していたため、複数入力ポートを持つモニター（SmallHD Cine7 など）で SDI IN 1 が使用済みの場合、HDMI IN が空いていても選択不可になっていた。
+
+**修正内容:**
+
+1. **`isMonitorAvailable` ロジック修正** (`ScenePanel.tsx`)
+   - 旧: `!hasIncomingEdge || alreadyOnThisPort`（全ポート空きのときのみ true）
+   - 新: `alreadyOnThisPort || monHandles.some(h => !usedHandles.has(h))`（1 ポートでも空いていれば true）
+
+2. **`firstFreeIn` 型マッチング改善** (CameraCard / WirelessCard)
+   - モニター接続時に選択される入力ポートを「ケーブルタイプが一致する空きポート優先、なければ任意の空きポート」に変更
+   - SDI OUT → SDI IN、HDMI OUT → HDMI IN が自動選択されるように
+
+3. **デバッグ用 console.log を全削除** (`isMonitorAvailable` 内 + `ScenePanel` 本体)
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (9)
+
+### モニターカード接続状態表示 + エッジ参照型ポート2重接続防止
+
+**変更内容:**
+
+**1. MonitorCard 接続状態表示（読み取り専用）**
+- `getMonitorConnectionInfo(mon, scene)` ヘルパー関数を追加
+- 表示内容: 接続元機材名 + 出力ポート → 入力ポート + ケーブルタイプ
+- 未接続時は赤字で「未接続」を表示
+- scene ステートから毎レンダリング再計算されるためリアルタイム更新
+
+**2. エッジ参照型ポート2重接続防止（全機材対象）**
+- `App.tsx`: `edges={rfEdges}` を ScenePanel に渡すように変更
+- `ScenePanel`: `edges` props を受け取り、全エッジ（auto + locked + WIRELESS）から `usedHandles: Set<string>` を構築
+- ハンドルID形式: `${uid}_${modelId}_p${portIdx}` （instantiate() と完全一致）
+- ヘルパー関数: `camHandle()`, `rxHandle()`, `monHandle()` でハンドルID生成
+- `isMonitorAvailable(mon, sourceHandle, usedHandles, edges)` 関数:
+  - モニターのどの入力ポートもすでに使用中でなければ選択可
+  - 現在このソースポートから接続済みなら選択可（変更・確認用）
+- **CameraCard**: 出力ポートごとに `usedHandles` を参照し使用済みモニター入力を除外
+- **WirelessCard**: RX出力ポートと接続先モニター入力を `usedHandles` で動的フィルタリング
+- **モニター入力ポートセレクター**: 未使用 or 現在選択中のポートのみ表示
+- **RX出力ポートセレクター**: RX に複数出力がある場合も使用済みを除外
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (8)
+
+### UI改善: 接続方向反転・ポート2重接続防止・ノードクリックハイライト
+
+**変更内容:**
+
+1. **接続方向を反転（カメラ視点に変更）**
+   - `CameraCard` に「接続先」セクションを追加: 各出力ポートに対してどのモニターへ繋ぐかを選択
+   - `MonitorCard` から「接続元」セクションを削除（シンプルな情報表示カードに）
+   - `handleSetCameraOutput(camId, portIdx, portType, monId, monPortIdx)` ハンドラ追加
+
+2. **ポートの2重接続防止**
+   - `CameraCard` の接続先セレクター: すでに別のポートに接続済みのモニターは選択肢から除外
+   - `WirelessCard` の RX→モニター セレクター: すでに他ソースに接続済みのモニターは除外
+   - フィルタ条件: `!m.sourceId || (m.sourceId === sourceId && m.sourcePortIdx === portIdx)`
+
+3. **リアルタイム接続チェック**
+   - `InfoPanel.validate()` は既にpropsから毎レンダリング再計算済みのため変更不要（確認）
+
+4. **ノードクリック→右パネルカードハイライト＋自動スクロール**
+   - `App.tsx`: `resolveEntityId(nodeId, scene)` 関数追加（ノードID→エンティティID変換）
+   - `App.tsx`: `selectedNodeEntityId` ステート追加
+   - `App.tsx`: `handleNodeClick` を更新（ReactFlow Node 型を受け取りentityIdを算出）
+   - `ScenePanel.tsx`: `highlightedEntityId?: string | null` プロップ追加
+   - `Card` コンポーネント: `entityId`/`highlighted` プロップ追加、ハイライト時は青ボーダー (#005BA6) + 青グロー
+   - `scrollBodyRef` + `useEffect` でハイライト変化時に `scrollIntoView({ behavior: "smooth" })`
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (7)
+
+### Claude Code Automations 設定 + spec-verifier による全機材スペック検証・修正
+
+**設定ファイル新規作成:**
+- `.claude/skills/add-equipment/SKILL.md` — 機材スペック調査→DB追加の繰り返しワークフローをスキル化
+- `.claude/agents/spec-verifier.md` — equipmentDB.ts のスペックを公式サイトと照合するサブエージェント定義
+- `.claude/settings.json` — TypeScript エラー自動検知 Hook（Edit/Write 後に `tsc --noEmit` を自動実行）
+
+**spec-verifier による検証結果（全50機種）:**
+
+重大エラー（ports[] に影響）:
+- `v_raptor`: SDI out × 3 → × 2 に修正（3本は V-Raptor XL のみ、標準モデルは 2本）
+  - ソース: RED docs.red.com V-Raptor Operation Guide
+- `smallhd_indie7`: HDMI out が未定義 → ports に HDMI out を追加
+  - ソース: SmallHD Indie 7 Quick Start Guide（port K として明示）
+
+軽微修正（richSpec のみ、ports[] への影響なし）:
+- `fx9`: richSpec の SDI outputs を 3G×2 → 12G×1 + 3G×1 に分割修正
+- `atomos_sumo19`: richSpec の SDI inputs を 3G×4 → 12G×1 + 3G×3 に分割修正
+- `hollyland_pyroh_tx`: HDMI standard null → "1.4" に修正
+
+要追加調査:
+- `fsi_dm240w`: DM240W の独立スペックページが見つからず（DM242 等と混在の可能性）
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (6)
+
+### ポート個別管理・番号付き表示・使用済み除外
+
+**equipmentDB.ts:**
+- `inputPortOptions()` / `outputPortOptions()` の戻り値に `type: string` フィールドを追加
+  - ケーブル種別の自動導出に使用
+
+**ScenePanel.tsx（全面書き直し）:**
+- `MonitorCard` の接続元セクションを全面改修:
+  - 接続元エンティティ選択後に「出力ポート」ドロップダウンを追加
+  - 他のモニターが既に使用中のポートは選択肢から除外（`usedSourcePortKeys` による追跡）
+  - 出力ポートが1つの場合はドロップダウン非表示（テキストラベルのみ）
+  - ターゲット入力ポート（このモニターのどの入力を使うか）を複数ある場合のみ表示
+  - ケーブル種別は出力ポート種別から自動導出 → `CableBadge` で表示（手動選択廃止）
+  - 接続元エンティティ変更時に `sourcePortIdx` / `targetPortIdx` を自動初期割当
+  - 利用可能な出力ポートが0の場合は赤色のエラーメッセージ表示
+- `CableBadge` コンポーネント新規追加（SDI/HDMI をカラーバッジ表示）
+- `WirelessCard` のRXユニットセクションを改修:
+  - 接続先モニターの「入力ポート」ドロップダウンを追加（複数入力ある機材のみ）
+  - 手動ケーブル種別セレクタを廃止 → `CableBadge` 表示に変更
+  - 接続設定時に `rxPortIdx`（RX出力）/ `monPortIdx`（モニター入力）を自動設定
+- `onSetRxMonitor` シグネチャ更新: `(rxId, monId, cableType, rxPortIdx?, monPortIdx?)`
+- `removeCamera` / `removeMonitor` / `handleRemoveRxUnit` / `removeWirelessSet`:
+  - `sourcePortIdx` / `targetPortIdx` も合わせてクリアするよう修正
+
+**App.tsx:**
+- `INITIAL_SCENE` を更新: mon1/mon2 に `sourcePortIdx` / `targetPortIdx` を明示的に設定
+  - mon1 (SmallHD Cine 7 ← FX6): sourcePortIdx=0(SDI OUT), targetPortIdx=0(SDI IN 1)
+  - mon2 (Shogun 7 ← wireless_rx): sourcePortIdx=1(SDI OUT), targetPortIdx=0(SDI IN)
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (5)
+
+### 接続設定UI + 自動エッジ生成 + バリデーションパネル
+
+**方針変更**: 「全手動ドラッグ」→「パネルで接続先選択 → 自動線生成、手動変更も可能」
+
+**types.ts:**
+- `MonitorInstance` に `sourceId?: string`（カメラ/RX/モニターID）と `cableType?: string` を追加
+- `WirelessSetInstance.destinationIds` を `optional` に変更（deprecated）
+
+**setupToFlow.ts:**
+- `MonitorInstance.sourceId` から自動エッジ生成ロジックを追加
+- カメラ→モニター、RX→モニター、モニター→モニターの3パターン対応
+- ケーブル種類に応じたハンドル選択（WIRELESS は除外）
+
+**ScenePanel.tsx（全面書き直し）:**
+- `MonitorCard`: 接続元ドロップダウン（カメラ/ワイヤレスRX/モニターをoptgroup分け）+ ケーブル種類セレクタを追加
+- `MonitorCard`: 接続状態ドット（緑=接続済み、赤=未接続）を追加
+- `WirelessCard`: destinationId チェックボックスUI → RXごとの接続先モニター+ケーブル種類UIに変更
+- `ScenePanel`: `handleSetRxMonitor`（RX→Monitor 接続更新）、`handleRemoveRxUnit`（RX削除時モニターsourceId自動クリア）、`removeWirelessSet`（セット削除時の全RX接続クリア）を追加
+- カメラ・モニター削除時に依存するsourceIdを自動クリアするよう修正
+
+**InfoPanel.tsx（全面書き直し）:**
+- 「チェック」タブを追加（エラー/警告/OK状態）
+- エラー（赤）: sourceId未設定モニター（未接続）
+- 警告（黄）: 接続先モニター未設定のRXユニット
+- 問題なし: ✅ 接続チェックOK
+- モニタータブ: 接続状態（緑/赤）とケーブル種類を表示
+
+**App.tsx:**
+- `INITIAL_SCENE` を更新: mon1→cam1(SDI)、mon2→ws1_rx(SDI)の接続を初期設定
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (4)
+
+### WIRELESSエッジ根本修正 — React Flow ハンドルID不一致の解消
+
+**根本原因:** React Flow v12 は `sourceHandle` 未指定時に内部で `null` を使い、`id="null"` のハンドルを探す → 存在しないため "Couldn't create edge for source handle id: 'null'" エラーが大量発生し、エッジが描画されなかった。
+
+**types.ts:**
+- `Port.type` ユニオン型に `"WIRELESS"` を追加（`"HDMI" | "SDI" | "WIRELESS"`）
+
+**equipmentDB.ts:**
+- 全 8 TX モデルの `ports[]` に `{ type: "WIRELESS", direction: "out" }` を末尾に追加
+- 全 8 RX モデルの `ports[]` に `{ type: "WIRELESS", direction: "in" }` を先頭に追加
+  - 対象: wireless_tx/rx, teradek_bolt6_{lt750,lt1500,xt1500,xt3000}_{tx/rx}, teradek_bolt500xt_{tx/rx}, hollyland_pyroh_{tx/rx}, accsoon_cineview_se_{tx/rx}
+
+**setupToFlow.ts:**
+- ワイヤレスエッジ生成時に `eqById` から TX の WIRELESS OUT ポート・RX の WIRELESS IN ポートを動的に検索
+- `sourceHandle` / `targetHandle` に実在するハンドル ID を明示的に設定
+- デバッグ用 `console.log` を全削除
+
+**EquipmentNode.tsx:**
+- `PORT_COLOR` に `WIRELESS: "#9B59B6"` を追加
+- `PORT_LABEL` テーブルを追加（`WIRELESS → "RF"`）
+- ポートラベル表示で `PORT_LABEL[type]` を優先使用（例: "RF IN" / "RF OUT"）
+
+**CustomEdge.tsx / App.tsx:**
+- デバッグ用 `console.log` を全削除
+
+**ビルド:** エラー 0、警告 0
+
+---
+
+## 2026-05-18 (3)
+
+### WIRELESSエッジ正式ケーブル化 + インタラクションアニメーション
+
+**types.ts:**
+- `CABLE_COLORS.WIRELESS` を `"#94a3b8"` → `"#9B59B6"`（紫系）に変更
+
+**setupToFlow.ts:**
+- ワイヤレスエッジを `type: "custom"` の実線に変更（SDI/HDMI と同じ扱い）
+- `CABLE_COLORS.WIRELESS` を import して stroke 色に使用
+- `selectable: false`、`deletable: false` で手動操作不可
+- wsColor/wsLabel 等のワイヤレス専用フィールドを削除（シンプル化）
+
+**CustomEdge.tsx（全面書き直し）:**
+- `isWireless` 向け専用分岐を廃止、ケーブル種別に関わらず同一レンダリングパスで処理
+- ラベルは `cableType` をそのまま表示（"WIRELESS" / "SDI" / "HDMI" 等）
+- ホバー検知: `<BaseEdge>` を `<g>` で囲み `onMouseEnter/Leave` を追加
+- ホバー時: `strokeWidth 2.5 → 3`、`filter: brightness(1.18)` (0.15s ease-out)
+- 選択時: `strokeWidth 4`、`filter: drop-shadow(0 0 4px color80)` グロー効果
+- ラベルバッジ選択時: `box-shadow: 0 0 0 2px color55`（ハイライト）
+- WIRELESS は `interactionWidth: 0` 維持（クリック不可）
+
+**App.tsx:**
+- `LEGEND` に `{ label: "WIRELESS", color: CABLE_COLORS["WIRELESS"] }` を追加
+- `TopBarBtn` にクリック時 `scale(0.97)` エフェクト追加（0.1s ease-out）
+
+**EquipmentNode.tsx:**
+- `Props` に `selected?: boolean`、`dragging?: boolean` を追加
+- `hovered` state を追加（onMouseEnter/Leave）
+- ホバー時: `box-shadow: 0 4px 14px rgba(0,0,0,0.10)`（0.15s ease-out）
+- 選択時: border `#005BA6`、`box-shadow: ring + shadow`、`transform: scale(1.02)`
+- ドラッグ時: 強い影（浮いてる感）、`cursor: grabbing`
+- CSS transition: `box-shadow / border-color / transform` 全て 0.15s ease-out
+
+**ScenePanel.tsx:**
+- `Card` コンポーネントに hover state 追加
+- ホバー時: 背景 `#F0F0F2`、ボーダー微強調（0.15s ease-out）
+
+- `npm run build` エラーなし（206 modules）
+
+---
+
+## 2026-05-18 (2)
+
+### ワイヤレスエッジ未表示バグ修正
+
+**setupToFlow.ts:**
+- `type: "custom"` + `animated: true` の組み合わせで CSS の `stroke-dasharray` アニメーションが競合し、エッジが描画されないバグを修正
+- ワイヤレスエッジを React Flow 組み込みエッジ（`type` 省略 = bezier）に変更
+- `animated: false`、`selectable: false`、`deletable: false` を設定
+- スタイル: `stroke: "#888888"`, `strokeWidth: 2`, `strokeDasharray: "8 4"` (要件どおり)
+- ラベル: `"📡 RF"` または `"📡 RF 1"` を `label` prop で中央表示
+- `eqById.has()` チェックを削除しエッジを常に生成（ノード不在時も React Flow が無害に処理）
+
+- `npm run build` エラーなし（206 modules）
+
+---
+
+## 2026-05-18
+
+### 自動レイアウト改善・下部情報パネル・ワイヤレスエッジ改善
+
+**setupToFlow.ts（レイアウト全面見直し）:**
+- `SCENE_COL_X` を廃止し信号の流れ順の `COL_X` に置き換え
+- 列構成: camera(60) → onboard_mon(300) → wireless_tx(560) → wireless_rx(820) → main_mon(1080) → client_mon(1340) → recorder(1600)
+- `addNode()` を `colKey` パラメーター方式に変更（機材タイプではなく列キーで配置決定）
+- モニターをロール別に処理: onboard → Col2、focus/director/frontline/other → Col5、client → Col6
+- オンボードモニターがカメラの真横（Col2）に配置されるようになった
+- ワイヤレスエッジの `style.stroke` を `#94a3b8`（グレー）・ `strokeWidth: 3.5` に変更
+- `wsLabel` を `"RF"` から `"WIRELESS"` / `"WIRELESS · N"` に変更
+
+**CustomEdge.tsx（ワイヤレス線スタイル改善）:**
+- `isWireless` 時の line color を `wsColor`（カラー系）から `#94a3b8`（グレー固定）に変更
+- `strokeWidth: 2.5 → 3.5`、`strokeDasharray: "8 4" → "10 5"` でケーブルらしい太さに
+- ラベルバッジに `≋` アイコン追加（電波イメージ）+ `boxShadow` 追加
+- ラベル背景は引き続き `wsColor`（セット識別のため色維持）
+
+**InfoPanel.tsx（新規作成）:**
+- キャンバス下部固定パネル（高さ 108px）
+- タブ切替: 「ケーブル」（使用本数を種類別表示）・「モニター」（機種名＋役割一覧）
+- ケーブルタブ: WIRELESS 除外、種類ごとに カラーバー + 名称 + 本数表示
+- モニタータブ: equipmentDB の表示名 + SCENE_ROLE_LABELS でロールラベル表示
+- ケーブルなし時は説明メッセージを表示
+
+**App.tsx:**
+- `InfoPanel` をインポート
+- キャンバス列を `flexDirection: column` のラッパーに変更し ReactFlow wrapper に `overflow: hidden` 追加
+- キャンバス下部に `<InfoPanel edges={rfEdges} scene={scene} />` を追加
+
+- `npm run build` エラーなし（206 modules）
+
+---
+
+## 2026-05-17 (12)
+
+### TX/RX 視覚的グルーピング強化
+
+**setupToFlow.ts:**
+- RF エッジを `animated: true` に変更（流れるアニメーションで TX→RX 方向を表現）
+- `strokeWidth: 2 → 2.5` に拡大
+- `wsLabel` を data に追加（複数セット時: "RF 1"/"RF 2"、単一時: "RF"）
+
+**CustomEdge.tsx:**
+- RF エッジの opacity 制限を撤廃（フル不透明に）
+- RF ラベルをベタ塗り（`background: wsColor`、白文字）に変更 — ケーブルラベルと同スタイルに統一
+- ラベルテキストを `wsLabel` 変数から取得（セット番号付き対応）
+
+**EquipmentNode.tsx:**
+- ワイヤレス TX/RX ノードに `wsColor` ボーダー（1.5px solid）を追加
+- 同じセットの TX と RX ノードが同色のボーダーで囲まれ、ペアが一目で分かるように
+
+- `npm run build` エラーなし
+
+---
+
+## 2026-05-17 (11)
+
+### TX/RX カラーグルーピング + リセット時ケーブル保持
+
+**setupToFlow.ts:**
+- `WS_PALETTE` 追加（amber/sky/violet/green/red/pink の6色）
+- ワイヤレスセットごとに固有色を割り当て（インデックスでパレット循環）
+- TX・RX ノードに `wsColor` を data として渡す
+- RF エッジも同色に（`style.stroke = wsColor`、`data.wsColor` 追加）
+- 複数ワイヤレスセット時は subtitle に "TX · N" / "RX · N" を表示
+
+**EquipmentNode.tsx:**
+- `data.wsColor` を受け取り、ノードのアクセントバー・タイプラベル色に適用
+- `wsColor ?? TYPE_COLOR[type]` でフォールバック維持
+
+**CustomEdge.tsx:**
+- `data.wsColor` を読み取り RF エッジ線色・ラベル色に適用
+- ハードコードの `#94a3b8` をすべて `wsColor` 変数に置き換え
+
+**App.tsx:**
+- `handleResetLayout` を修正: locked エッジを保持するよう useEffect と同じマージロジックを適用
+- ポジションリセット後も手動で引いたケーブルが消えなくなった
+
+- `npm run build` エラーなし
+
+---
+
+## 2026-05-17 (10)
+
+### Phase 4改修完了
+
+**ScenePanel.tsx:**
+- `Modal` コンポーネントをインポート
+- カメラ追加：機種選択モーダル（確定後に追加）
+- モニター追加：機種・役割・割当カメラをモーダルで選択して追加
+- ワイヤレス追加：TX機種・RX複数台・送信元カメラをモーダルで選択して追加（RX追加ボタンでモーダル内複数台設定可能）
+
+**App.tsx:**
+- `ProjectPanel` / `saveProject` インポート追加
+- `projectMeta` 状態（id/name/author/notes/date）と `showProjectPanel` 状態を追加
+- トップバー：案件名ボタン（クリックで ProjectPanel 表示）・「保存」ボタン追加
+- `isManual` バッジ（手動配線中）を削除（自動配線廃止に伴い不要）
+- `handleLoadProject` / `handleNewProject` / `handleSaveProject` ハンドラーを追加
+- `<ProjectPanel>` を条件付きレンダリング
+
+- `npm run build` エラーなし（205 modules）
+
+---
+
+## 2026-05-17 (9)
+
+### 大規模リファクタリング: rxUnits / 自動ケーブル生成廃止 / ProjectPanel
+
+**types.ts:**
+- `WirelessRxUnit { id, model }` インターフェース追加
+- `WirelessSetInstance.rxModel` を削除し `rxUnits: WirelessRxUnit[]` （複数RX対応）に変更
+- `Project { id, name, author, date, notes?, scene }` インターフェース追加
+
+**equipmentDB.ts:**
+- `teradek_bolt500xt_tx` の SDI OUT ポートを削除（実機にループアウトなし）
+- `spec` を "Bolt 500 XT / 3G-SDI+HDMI in · 500ft (no loop-out)" に修正
+- `richSpec.outputs` から SDI loopThrough エントリを削除
+
+**generateSetup.ts（完全書き換え）:**
+- 自動ケーブル生成ロジックを全廃、機材ノード配置のみに変更
+- `connections: []` を返すシンプルな実装
+
+**setupToFlow.ts（完全書き換え）:**
+- `sceneToFlow` を rxUnits ベースに対応
+- 列ごとの自動Y位置割り当て方式に変更（V_SPACING=200）
+- TX→RX RF エッジは rxUnit ごとに生成
+- `setupToFlow` エイリアスは型互換のために維持
+
+**Modal.tsx（新規作成）:**
+- 汎用モーダルコンポーネント（タイトル・確定/キャンセルボタン・オーバーレイクリックで閉じる）
+
+**ProjectPanel.tsx（新規作成）:**
+- localStorage ベースのプロジェクト保存・読み込み・削除
+- 案件名・担当者・メモ・保存日時を管理
+- 読み込みモーダルは Modal コンポーネントを使用
+
+**ScenePanel.tsx / App.tsx / demo.ts:**
+- `rxModel` → `rxUnits` への全移行
+- WirelessCard に RX 追加・削除UI追加
+- `addWireless` で初期RXユニット1件を自動生成
+
+- `npm run build` エラーなし
+
+---
+
+## 2026-05-17 (8)
+
+### Phase 4: 配線ロジック+UX改善完了
+
+**Phase 4A: 自動配線の挙動改善:**
+- `WarningModal` 廃止 — Scene変更は即座に自動更新（確認ダイアログなし）
+- エッジロックシステム導入: 手動接続・再接続・ケーブル種類変更で `data.locked: true` が付与される
+- ロックされたエッジは Scene更新時も保持（`useEffect` でロックシグネチャ照合）
+- `EdgePanel` にロック🔒/解除🔓ボタンを追加
+- `CustomEdge` のラベルにロックアイコンを表示
+- 優先順位はすでに `generateFromScene` で実装済み（onboard→focus→frontline→director→client）
+
+**Phase 4B: ワイヤレス改善:**
+- TX→RX 間に RF 可視化エッジを追加（`sceneToFlow` で生成、selectable: false）
+- 点線（`strokeDasharray: "8 4"`）+ "RF" ラベルで電波伝送を表現
+- RX 複数台選択は `WirelessSetInstance.destinationIds: string[]` + ScenePanel チェックボックスで既実装
+
+**Phase 4C: 操作性改善:**
+- ケーブルのヒットエリア: `interactionWidth` 20 → 30 に拡大
+- ポートハンドル: 9×9px → 12×12px に拡大
+
+- `npm run build` エラーなし
+
+---
+
 ## 2026-05-17 (7)
 
 ### Phase 3: デザイン仕上げ完了

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import type { Equipment } from "./types";
+import { portLabel } from "./equipmentDB";
 
 const TYPE_COLOR: Record<string, string> = {
   camera:      "#30d158",
@@ -18,11 +20,11 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const PORT_COLOR: Record<string, string> = {
-  SDI:  "#3b82f6",
-  HDMI: "#f59e0b",
+  SDI:      "#3b82f6",
+  HDMI:     "#f59e0b",
+  WIRELESS: "#9B59B6",
 };
 
-// Compact dimensions — Design.md: 6px radius, no shadow, high density
 const NODE_W     = 190;
 const HEADER_H   = 44;
 const PORT_ROW_H = 23;
@@ -33,32 +35,71 @@ function handleTopPct(rowIdx: number, nodeH: number): string {
   return `${(y / nodeH) * 100}%`;
 }
 
-interface Props {
-  data: { equipment: Equipment; subtitle?: string };
+function portDisplayLabel(ports: Equipment["ports"], idx: number): string {
+  return portLabel(ports, idx).replace(/^WIRELESS\s+(IN|OUT)/, "RF $1");
 }
 
-export function EquipmentNode({ data }: Props) {
-  const { equipment, subtitle } = data;
-  const color     = TYPE_COLOR[equipment.type] ?? "#8e8e93";
-  const typeLabel = subtitle ?? TYPE_LABEL[equipment.type];
+interface Props {
+  data: {
+    equipment: Equipment;
+    subtitle?: string;
+    wsColor?: string;
+    connectedPortIds?: string[];
+  };
+  selected?: boolean;
+  dragging?: boolean;
+}
 
-  const inputPorts  = equipment.ports.filter(p => p.direction === "in");
-  const outputPorts = equipment.ports.filter(p => p.direction === "out");
+export function EquipmentNode({ data, selected = false, dragging = false }: Props) {
+  const [hovered, setHovered] = useState(false);
+  const { equipment, subtitle, wsColor, connectedPortIds = [] } = data;
+  const color     = wsColor ?? (TYPE_COLOR[equipment.type] ?? "#8e8e93");
+  const typeLabel = subtitle ?? TYPE_LABEL[equipment.type];
+  const connectedSet = new Set(connectedPortIds);
+
+  const allIndexed  = equipment.ports.map((port, idx) => ({ port, idx }));
+  const inputPorts  = allIndexed.filter(({ port }) => port.direction === "in");
+  const outputPorts = allIndexed.filter(({ port }) => port.direction === "out");
   const maxRows = Math.max(inputPorts.length, outputPorts.length, 1);
   const nodeH   = HEADER_H + V_PAD + maxRows * PORT_ROW_H + V_PAD;
 
+  const isWireless = equipment.type === "wireless_tx" || equipment.type === "wireless_rx";
+
+  const border = selected
+    ? "1.5px solid #005BA6"
+    : (isWireless && wsColor)
+      ? `1.5px solid ${wsColor}`
+      : "1px solid rgba(0,0,0,0.10)";
+
+  const boxShadow = dragging
+    ? "0 14px 36px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.10)"
+    : selected
+      ? "0 0 0 2px #005BA620, 0 4px 12px rgba(0,0,0,0.08)"
+      : hovered
+        ? "0 4px 14px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)"
+        : "none";
+
   return (
-    <div style={{
-      position: "relative",
-      width: NODE_W,
-      height: nodeH,
-      background: "#FFFFFF",
-      border: "1px solid rgba(0,0,0,0.10)",
-      borderRadius: 6,
-      color: "#1d1d1f",
-      fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
-      overflow: "visible",
-    }}>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "relative",
+        width: NODE_W,
+        height: nodeH,
+        background: "#FFFFFF",
+        border,
+        borderRadius: 6,
+        color: "#1d1d1f",
+        fontFamily: "-apple-system, 'SF Pro Display', Inter, sans-serif",
+        overflow: "visible",
+        boxShadow,
+        transform: selected ? "scale(1.02)" : "scale(1)",
+        transformOrigin: "center center",
+        cursor: dragging ? "grabbing" : "default",
+        transition: "box-shadow 0.15s ease-out, border-color 0.15s ease-out, transform 0.15s ease-out",
+      }}
+    >
       {/* Category accent bar — top only, 3px */}
       <div style={{
         position: "absolute",
@@ -106,6 +147,8 @@ export function EquipmentNode({ data }: Props) {
         {Array.from({ length: maxRows }).map((_, i) => {
           const inp = inputPorts[i];
           const out = outputPorts[i];
+          const inpConn = inp ? connectedSet.has(inp.port.id) : false;
+          const outConn = out ? connectedSet.has(out.port.id) : false;
           return (
             <div key={i} style={{
               height: PORT_ROW_H,
@@ -116,17 +159,25 @@ export function EquipmentNode({ data }: Props) {
             }}>
               <span style={{
                 fontSize: 9, fontWeight: 500, letterSpacing: 0.3,
-                color: inp ? (PORT_COLOR[inp.type] ?? "#6e6e73") : "transparent",
+                color: inp
+                  ? (inpConn ? (PORT_COLOR[inp.port.type] ?? "#6e6e73") : "#b0b0b8")
+                  : "transparent",
                 userSelect: "none",
+                display: "flex", alignItems: "center", gap: 3,
               }}>
-                {inp ? `${inp.type} IN` : ""}
+                {inp && inpConn && <span style={{ fontSize: 7 }}>●</span>}
+                {inp ? portDisplayLabel(equipment.ports, inp.idx) : ""}
               </span>
               <span style={{
                 fontSize: 9, fontWeight: 500, letterSpacing: 0.3,
-                color: out ? (PORT_COLOR[out.type] ?? "#6e6e73") : "transparent",
+                color: out
+                  ? (outConn ? (PORT_COLOR[out.port.type] ?? "#6e6e73") : "#b0b0b8")
+                  : "transparent",
                 userSelect: "none",
+                display: "flex", alignItems: "center", gap: 3,
               }}>
-                {out ? `${out.type} OUT` : ""}
+                {out ? portDisplayLabel(equipment.ports, out.idx) : ""}
+                {out && outConn && <span style={{ fontSize: 7 }}>●</span>}
               </span>
             </div>
           );
@@ -134,34 +185,34 @@ export function EquipmentNode({ data }: Props) {
       </div>
 
       {/* Input handles */}
-      {inputPorts.map((port, i) => (
+      {inputPorts.map(({ port }, rowIdx) => (
         <Handle
           key={port.id}
           id={port.id}
           type="target"
           position={Position.Left}
           style={{
-            top: handleTopPct(i, nodeH),
-            width: 9, height: 9,
+            top: handleTopPct(rowIdx, nodeH),
+            width: 12, height: 12,
             background: PORT_COLOR[port.type] ?? "#8e8e93",
-            border: "2px solid #FFFFFF",
+            border: connectedSet.has(port.id) ? "2px solid #30d158" : "2px solid #FFFFFF",
             borderRadius: "50%",
           }}
         />
       ))}
 
       {/* Output handles */}
-      {outputPorts.map((port, i) => (
+      {outputPorts.map(({ port }, rowIdx) => (
         <Handle
           key={port.id}
           id={port.id}
           type="source"
           position={Position.Right}
           style={{
-            top: handleTopPct(i, nodeH),
-            width: 9, height: 9,
+            top: handleTopPct(rowIdx, nodeH),
+            width: 12, height: 12,
             background: PORT_COLOR[port.type] ?? "#8e8e93",
-            border: "2px solid #FFFFFF",
+            border: connectedSet.has(port.id) ? "2px solid #30d158" : "2px solid #FFFFFF",
             borderRadius: "50%",
           }}
         />

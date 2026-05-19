@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "CineRig/Architecture.md",
+                "file": "CineRig/Logs.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Architecture"
+              "title": "Logs"
             }
           },
           {
@@ -278,19 +278,27 @@
   },
   "active": "64b465a0eb078158",
   "lastOpenFiles": [
-    "CineRig/Design.md",
-    "CineRig/Equipment.md",
-    "CineRig/UI.md",
-    "CineRig/Tasks.md",
+    "CineRig/Logs.md.tmp.16648.5d9ff7a380d0",
+    "CineRig/Logs.md.tmp.16648.42c0d01aaa86",
+    "CineRig/Logs.md.tmp.16648.89517cb500d6",
+    "CineRig/Logs.md.tmp.16648.00223b44bc44",
+    "CineRig/Logs.md.tmp.16648.bfbf8398f9cb",
+    "CineRig/Logs.md.tmp.16648.e508c4de1afb",
+    "CineRig/Logs.md.tmp.16648.b61fc0e33563",
     "CineRig/Architecture.md",
-    "CineRig/Requirements.md",
-    "CineRig/Logs.md",
+    "CineRig/Design.md",
     "Base.md",
+    "CineRig/Tasks.md",
+    "CineRig/Logs.md",
+    "CineRig/Logs.md.tmp.34036.a7f9347fee79",
+    "CineRig/Logs.md.tmp.34036.a445f82d941f",
+    "CineRig/Equipment.md",
+    "CineRig/Requirements.md",
+    "CineRig/Logs.md.tmp.34036.a7505ba6144b",
+    "CineRig/Logs.md.tmp.34036.6fe208332196",
+    "CineRig/UI.md",
     "Myself/ようこそ.md",
-    "Myself",
-    "無題のフォルダ",
     "無題のフォルダ/無題のファイル.md",
-    "無題のファイル.canvas",
-    "CineRig"
+    "無題のファイル.canvas"
   ]
 }

@@ -6,7 +6,7 @@ const scene: Scene = {
   wirelessSets: [{
     id: "ws1",
     txModel: "wireless_tx",
-    rxModel: "wireless_rx",
+    rxUnits: [{ id: "ws1_rx1", model: "wireless_rx" }],
     sourceId: "cam1",
     destinationIds: ["mon3", "mon4"],
   }],

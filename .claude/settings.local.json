@@ -44,7 +44,16 @@
       "WebFetch(domain:www.imaging-resource.com)",
       "WebFetch(domain:accsoon.com)",
       "WebFetch(domain:www.voiceandvideosales.com)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Bash(node -e ' *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d['version']\\)\")",
+      "Skill(claude-code-setup:claude-automation-recommender)",
+      "WebFetch(domain:smallhd.com)",
+      "WebFetch(domain:www.lensrentals.com)",
+      "WebFetch(domain:www.avlgear.com)",
+      "WebFetch(domain:www.flandersscientific.com)",
+      "Bash(npx tsc *)",
+      "Bash(node *)"
     ]
   }
 }

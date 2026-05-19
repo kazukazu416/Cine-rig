@@ -1,6 +1,6 @@
 export interface Port {
   id: string;
-  type: "HDMI" | "SDI";
+  type: "HDMI" | "SDI" | "WIRELESS";
   direction: "in" | "out";
 }
 
@@ -33,10 +33,11 @@ export type CameraModel =
 export type CableType = "SDI" | "HDMI" | "BNC" | "その他";
 export const CABLE_TYPES: CableType[] = ["SDI", "HDMI", "BNC", "その他"];
 export const CABLE_COLORS: Record<string, string> = {
-  SDI:   "#3b82f6",
-  HDMI:  "#f59e0b",
-  BNC:   "#a855f7",
-  その他: "#6b7280",
+  SDI:      "#3b82f6",
+  HDMI:     "#f59e0b",
+  BNC:      "#a855f7",
+  その他:   "#6b7280",
+  WIRELESS: "#9B59B6",
 };
 
 export type MonitorModelId =
@@ -94,12 +95,17 @@ export interface CameraInstance {
   label?: string;
 }
 
+export interface WirelessRxUnit {
+  id: string;
+  model: string;
+}
+
 export interface WirelessSetInstance {
   id: string;
   txModel?: string;
-  rxModel?: string;
+  rxUnits: WirelessRxUnit[];
   sourceId: string;
-  destinationIds: string[];
+  destinationIds?: string[];  // deprecated: use MonitorInstance.sourceId
 }
 
 export interface MonitorInstance {
@@ -108,6 +114,10 @@ export interface MonitorInstance {
   role: SceneMonitorRole;
   cameraId?: string;
   customLabel?: string;
+  sourceId?: string;       // camera id / rx id / monitor id
+  sourcePortIdx?: number;  // index in source entity's DB template ports[]
+  targetPortIdx?: number;  // index in THIS monitor's DB template ports[]
+  cableType?: string;      // "SDI" | "HDMI" (derived from port type)
 }
 
 export interface RecorderInstance {
@@ -131,3 +141,12 @@ export const SCENE_ROLE_LABELS: Record<SceneMonitorRole, string> = {
   client:    "クライアント",
   other:     "その他",
 };
+
+export interface Project {
+  id: string;
+  name: string;
+  author: string;
+  date: string;
+  notes?: string;
+  scene: Scene;
+}

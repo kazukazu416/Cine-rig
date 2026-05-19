@@ -119,11 +119,12 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       size: null, resolution: "6K", brightness: null, hdr: null, recorder: false,
       inputs: [],
       outputs: [
-        { type: "SDI",  standard: "3G",  count: 2 },
+        { type: "SDI",  standard: "12G", count: 1 },
+        { type: "SDI",  standard: "3G",  count: 1 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "BP-U",
-      notes: "SDI 1 supports up to QFHD/4K. Simultaneous SDI+HDMI output supported.",
+      notes: "SDI 1: 12G/6G/3G supports up to QFHD/4K. SDI 2: 3G-SDI. Simultaneous SDI+HDMI output supported.",
     },
     ports: [
       { type: "SDI",  direction: "out" },
@@ -241,19 +242,18 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
   v_raptor: {
     name: "RED V-Raptor",
     type: "camera",
-    spec: "Full-frame / 3×12G-SDI out",
+    spec: "Full-frame / 2×12G-SDI out",
     richSpec: {
       manufacturer: "RED", model: "V-Raptor", category: "camera",
       size: null, resolution: "8K", brightness: null, hdr: null, recorder: false,
       inputs: [],
       outputs: [
-        { type: "SDI", standard: "12G", count: 3 },
+        { type: "SDI", standard: "12G", count: 2 },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "3x 12G-SDI BNC. HDMI要確認: requires optional DSMC3 expander module.",
+      notes: "2x 12G-SDI BNC (SDI 1/2). 3×SDI は V-Raptor XL のみ。HDMI requires optional DSMC3 expander.",
     },
     ports: [
-      { type: "SDI", direction: "out" },
       { type: "SDI", direction: "out" },
       { type: "SDI", direction: "out" },
     ],
@@ -326,8 +326,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
     name: "Wireless TX",
     type: "wireless_tx",
     ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
+      { type: "SDI",      direction: "in" },
+      { type: "HDMI",     direction: "in" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -335,7 +336,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
     name: "Wireless RX",
     type: "wireless_rx",
     ports: [
-      { type: "SDI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "SDI",      direction: "out" },
     ],
   },
 
@@ -357,8 +359,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "Max 1080p60 over SDI, 4K30 over HDMI. 750ft (230m) range.",
     },
     ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
+      { type: "SDI",      direction: "in" },
+      { type: "HDMI",     direction: "in" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -377,8 +380,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       powerConsumption: null, batteryMount: null, notes: "",
     },
     ports: [
-      { type: "SDI",  direction: "out" },
-      { type: "HDMI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "SDI",      direction: "out" },
+      { type: "HDMI",     direction: "out" },
     ],
   },
 
@@ -398,8 +402,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "Same ports as LT 750. 1500ft (450m) range.",
     },
     ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
+      { type: "SDI",      direction: "in" },
+      { type: "HDMI",     direction: "in" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -418,8 +423,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       powerConsumption: null, batteryMount: null, notes: "",
     },
     ports: [
-      { type: "SDI",  direction: "out" },
-      { type: "HDMI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "SDI",      direction: "out" },
+      { type: "HDMI",     direction: "out" },
     ],
   },
 
@@ -441,8 +447,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "12G-SDI supports 4K60. 3D LUT, FRC, anamorphic desqueeze. 1500ft range.",
     },
     ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
+      { type: "SDI",      direction: "in" },
+      { type: "HDMI",     direction: "in" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -461,8 +468,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       powerConsumption: null, batteryMount: null, notes: "",
     },
     ports: [
-      { type: "SDI",  direction: "out" },
-      { type: "HDMI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "SDI",      direction: "out" },
+      { type: "HDMI",     direction: "out" },
     ],
   },
 
@@ -482,8 +490,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "Same ports as XT 1500. 3000ft (900m) range.",
     },
     ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
+      { type: "SDI",      direction: "in" },
+      { type: "HDMI",     direction: "in" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -502,8 +511,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       powerConsumption: null, batteryMount: null, notes: "",
     },
     ports: [
-      { type: "SDI",  direction: "out" },
-      { type: "HDMI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "SDI",      direction: "out" },
+      { type: "HDMI",     direction: "out" },
     ],
   },
 
@@ -512,7 +522,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
   teradek_bolt500xt_tx: {
     name: "Teradek Bolt 500 XT TX",
     type: "wireless_tx",
-    spec: "Bolt 500 XT / 3G-SDI+HDMI in+loop · 500ft",
+    spec: "Bolt 500 XT / 3G-SDI+HDMI in · 500ft (no loop-out)",
     richSpec: {
       manufacturer: "Teradek", model: "Bolt 500 XT TX", category: "wireless_tx",
       size: null, resolution: null, brightness: null, hdr: null, recorder: false,
@@ -522,15 +532,14 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       ],
       outputs: [
         { type: "WIRELESS", count: 1 },
-        { type: "SDI",  standard: "3G", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: null,
-      notes: "Older Bolt 500 XT generation. TX has SDI loop-through output. 500ft range.",
+      notes: "Older Bolt 500 XT generation. 500ft range.",
     },
     ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
-      { type: "SDI",  direction: "out" },
+      { type: "SDI",      direction: "in" },
+      { type: "HDMI",     direction: "in" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -550,9 +559,10 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "Dual 3G-SDI outputs on RX.",
     },
     ports: [
-      { type: "SDI",  direction: "out" },
-      { type: "SDI",  direction: "out" },
-      { type: "HDMI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "SDI",      direction: "out" },
+      { type: "SDI",      direction: "out" },
+      { type: "HDMI",     direction: "out" },
     ],
   },
 
@@ -566,18 +576,19 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       manufacturer: "Hollyland", model: "Pyro H TX", category: "wireless_tx",
       size: null, resolution: null, brightness: null, hdr: null, recorder: false,
       inputs: [
-        { type: "HDMI", standard: null, count: 1 },
+        { type: "HDMI", standard: "1.4", count: 1 },
       ],
       outputs: [
         { type: "WIRELESS", count: 1 },
-        { type: "HDMI", standard: null, count: 1, loopThrough: true },
+        { type: "HDMI", standard: "1.4", count: 1, loopThrough: true },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "HDMI only (no SDI). 4K30 transmission. HDMI loop-through. 1300ft (400m).",
+      notes: "HDMI 1.4b only (no SDI). 4K30 transmission. HDMI loop-through. 1300ft (400m).",
     },
     ports: [
-      { type: "HDMI", direction: "in" },
-      { type: "HDMI", direction: "out" },
+      { type: "HDMI",     direction: "in" },
+      { type: "HDMI",     direction: "out" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -596,7 +607,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "HDMI only output.",
     },
     ports: [
-      { type: "HDMI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "HDMI",     direction: "out" },
     ],
   },
 
@@ -618,8 +630,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "Standard: 1080p60 SDI. 4K SE variant supports 4K30 over HDMI. 1200ft (350m).",
     },
     ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
+      { type: "SDI",      direction: "in" },
+      { type: "HDMI",     direction: "in" },
+      { type: "WIRELESS", direction: "out" },
     ],
   },
 
@@ -639,8 +652,9 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       notes: "Cross-conversion: TX SDI→RX HDMI, TX HDMI→RX SDI.",
     },
     ports: [
-      { type: "SDI",  direction: "out" },
-      { type: "HDMI", direction: "out" },
+      { type: "WIRELESS", direction: "in" },
+      { type: "SDI",      direction: "out" },
+      { type: "HDMI",     direction: "out" },
     ],
   },
 
@@ -784,7 +798,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
   smallhd_indie7: {
     name: "SmallHD Indie 7",
     type: "monitor",
-    spec: '7" / 2×3G-SDI+HDMI in · SDI loop out',
+    spec: '7" / 2×3G-SDI+HDMI in · SDI loop out · HDMI out',
     richSpec: {
       manufacturer: "SmallHD", model: "Indie 7", category: "monitor",
       size: 7, resolution: "1920x1200", brightness: null, hdr: null, recorder: false,
@@ -794,15 +808,17 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       ],
       outputs: [
         { type: "SDI",  standard: "3G",  count: 1, loopThrough: true },
+        { type: "HDMI", standard: "2.0", count: 1 },
       ],
       powerConsumption: null, batteryMount: "Sony NP-F",
-      notes: "SDI 2 = loop-through. 要確認: HDMI output presence (not confirmed in official docs).",
+      notes: "SDI 2 = loop-through. HDMI out confirmed via Quick Start Guide port diagram (port K).",
     },
     ports: [
       { type: "SDI",  direction: "in" },
       { type: "SDI",  direction: "in" },
       { type: "HDMI", direction: "in" },
       { type: "SDI",  direction: "out" },
+      { type: "HDMI", direction: "out" },
     ],
   },
 
@@ -1015,7 +1031,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       manufacturer: "Atomos", model: "Sumo 19", category: "monitor",
       size: 19, resolution: "1920x1080", brightness: 1500, hdr: true, recorder: true,
       inputs: [
-        { type: "SDI",  standard: "3G",  count: 4 },
+        { type: "SDI",  standard: "12G", count: 1 },
+        { type: "SDI",  standard: "3G",  count: 3 },
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       outputs: [
@@ -1023,7 +1040,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, cleanFeed: true },
       ],
       powerConsumption: null, batteryMount: "V-mount",
-      notes: "19\" HDR production monitor. Quad-3G-SDI for 4K input. Records to SSD.",
+      notes: "19\" HDR production monitor. SDI 1: 12G (4K single-link), SDI 2-4: 3G (Quad-link 4K / HD). Records to SSD.",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1291,6 +1308,49 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
   },
 
 };
+
+// ── Port utilities ────────────────────────────────────────────────────────────
+
+/** Display label for port at template index.
+ *  Multiple same-type/direction ports get a rank: "SDI IN 1", "SDI IN 2", etc.
+ *  A single port of its kind has no number: "SDI IN", "HDMI OUT".
+ */
+export function portLabel(
+  ports: ReadonlyArray<{ type: string; direction: string }>,
+  idx: number,
+): string {
+  const port = ports[idx];
+  if (!port) return `Port ${idx}`;
+  const dir = port.direction === "in" ? "IN" : "OUT";
+  let rank = 0, total = 0;
+  for (let i = 0; i < ports.length; i++) {
+    if (ports[i].type === port.type && ports[i].direction === port.direction) {
+      total++;
+      if (i <= idx) rank++;
+    }
+  }
+  return total > 1 ? `${port.type} ${dir} ${rank}` : `${port.type} ${dir}`;
+}
+
+/** Non-WIRELESS input port options for a model (template indices). */
+export function inputPortOptions(modelId: EquipmentModelId): { idx: number; label: string; type: string }[] {
+  const tmpl = DB[modelId];
+  if (!tmpl) return [];
+  return tmpl.ports
+    .map((p, i) => ({ p, i }))
+    .filter(({ p }) => p.direction === "in" && p.type !== "WIRELESS")
+    .map(({ p, i }) => ({ idx: i, label: portLabel(tmpl.ports, i), type: p.type }));
+}
+
+/** Non-WIRELESS output port options for a model (template indices). */
+export function outputPortOptions(modelId: EquipmentModelId): { idx: number; label: string; type: string }[] {
+  const tmpl = DB[modelId];
+  if (!tmpl) return [];
+  return tmpl.ports
+    .map((p, i) => ({ p, i }))
+    .filter(({ p }) => p.direction === "out" && p.type !== "WIRELESS")
+    .map(({ p, i }) => ({ idx: i, label: portLabel(tmpl.ports, i), type: p.type }));
+}
 
 // ── Model lists ───────────────────────────────────────────────────────────
 
