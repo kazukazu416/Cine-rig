@@ -1,3 +1,41 @@
+## 2026-05-20 (11)
+
+### バッテリー計算UI実装
+
+**対応ファイル:** src/BatterySection.tsx（新規）/ src/ScenePanel.tsx / src/InfoPanel.tsx / src/App.tsx
+
+**BatterySection.tsx（新規）:**
+- `BatteryBreakdownItem`, `BatterySelection` 型を定義
+- `DEFAULT_BATTERY`: IDX DUO-C198P × 1
+- `calcRuntime(batteryId, count, totalWatts)`: 稼働時間計算（Wh × 本数 × 0.8 ÷ W）
+- `BatterySection` コンポーネント:
+  - 折りたたみ式（デフォルト閉、max-height 200ms ease-out アニメーション）
+  - 合計消費電力・内訳表示
+  - バッテリー機種セレクト（batteryDB.ts の BATTERY_GROUPS 準拠）
+  - 本数入力（1〜10本）
+  - 稼働時間色分け: <2h=赤(#E24B4A) / 2〜4h=黄(#EF9F27) / ≥4h=緑(#639922)
+
+**ScenePanel.tsx:**
+- `batterySelections`, `onBatteryChange` props を追加
+- CameraCard: `batteryBreakdown`（カメラ本体+オンボードモニター+TX）+バッテリー props を追加
+- MonitorCard: `batteryBreakdown`（モニター単体）+バッテリー props を追加
+- 各カードの render 時に breakdown を動的に計算して BatterySection を追加
+
+**InfoPanel.tsx:**
+- "🔋 バッテリー" タブを追加（4つ目のタブ）
+- `BatteryTab` コンポーネント:
+  - カメラグループ行（カメラ本体+オンボード+TX の合計W）
+  - モニター行（onboard 以外のモニター単体W）
+  - 各行: 機材名 / 消費電力 / バッテリー機種×本数 / 稼働時間（色分け）
+  - 合計必要本数サマリー（機種ごと）
+
+**App.tsx:**
+- `batterySelections: Record<string, BatterySelection>` state を追加
+- `handleBatteryChange` コールバックを追加
+- ScenePanel, InfoPanel に props を渡す
+
+---
+
 ## 2026-05-20 (10)
 
 ### バッテリーDB新規作成 + 全機材 powerConsumption 入力

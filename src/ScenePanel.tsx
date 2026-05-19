@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { BatterySection, DEFAULT_BATTERY, type BatteryBreakdownItem, type BatterySelection } from "./BatterySection";
 import type { Edge } from "@xyflow/react";
 import type {
   Scene, CameraInstance, WirelessSetInstance, WirelessRxUnit, MonitorInstance, SceneMonitorRole,
@@ -383,7 +384,7 @@ function CableBadge({ type }: { type?: string }) {
 
 // ── Camera card ───────────────────────────────────────────────────────────────
 
-function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlighted, usedHandles, edges }: {
+function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlighted, usedHandles, edges, batteryBreakdown, batterySelection, onBatteryChange }: {
   cam: CameraInstance;
   allMonitors: MonitorInstance[];
   onChange: (c: CameraInstance) => void;
@@ -392,6 +393,9 @@ function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlig
   highlighted?: boolean;
   usedHandles: Set<string>;
   edges: Edge[];
+  batteryBreakdown: BatteryBreakdownItem[];
+  batterySelection: BatterySelection;
+  onBatteryChange: (batteryId: string, count: number) => void;
 }) {
   const outputs = outputPortOptions(cam.model as EquipmentModelId);
 
@@ -423,6 +427,7 @@ function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlig
             <FieldLabel>接続先</FieldLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {outputs.map(port => {
+
                 const srcHandle = camHandle(cam, port.idx);
                 const connectedMon = allMonitors.find(
                   m => m.sourceId === cam.id && m.sourcePortIdx === port.idx
@@ -491,6 +496,13 @@ function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlig
             </div>
           </div>
         )}
+
+        <BatterySection
+          breakdown={batteryBreakdown}
+          batteryId={batterySelection.batteryId}
+          count={batterySelection.count}
+          onChange={onBatteryChange}
+        />
       </div>
     </Card>
   );
@@ -501,6 +513,7 @@ function CameraCard({ cam, allMonitors, onChange, onRemove, onSetOutput, highlig
 function MonitorCard({
   mon, cameras, onChange, onRemove, highlighted, connectionInfo,
   allRxUnits, allMonitors, allWirelessSets, allConverters, onConnect, onConnectOut, onDisconnectDest, usedHandles,
+  batteryBreakdown, batterySelection, onBatteryChange,
 }: {
   mon: MonitorInstance;
   cameras: CameraInstance[];
@@ -516,6 +529,9 @@ function MonitorCard({
   onConnectOut: (destType: "monitor" | "tx", destId: string, srcPortIdx: number, cableType: string, destInPortIdx?: number) => void;
   onDisconnectDest: (destType: "monitor" | "tx", destId: string) => void;
   usedHandles: Set<string>;
+  batteryBreakdown: BatteryBreakdownItem[];
+  batterySelection: BatterySelection;
+  onBatteryChange: (batteryId: string, count: number) => void;
 }) {
   const [selSrcId, setSelSrcId] = useState("");
   const [selOutPortIdx, setSelOutPortIdx] = useState<number | undefined>(undefined);
@@ -930,6 +946,13 @@ function MonitorCard({
             )}
           </div>
         )}
+
+        <BatterySection
+          breakdown={batteryBreakdown}
+          batteryId={batterySelection.batteryId}
+          count={batterySelection.count}
+          onChange={onBatteryChange}
+        />
       </div>
     </Card>
   );
@@ -1512,6 +1535,8 @@ interface Props {
   onResetLayout: () => void;
   highlightedEntityId?: string | null;
   edges?: Edge[];
+  batterySelections?: Record<string, BatterySelection>;
+  onBatteryChange?: (entityId: string, batteryId: string, count: number) => void;
 }
 
 const ML: React.CSSProperties = {
@@ -1519,7 +1544,7 @@ const ML: React.CSSProperties = {
   letterSpacing: 0.5, marginBottom: 4, textTransform: "uppercase",
 };
 
-export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId, edges = [] }: Props) {
+export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId, edges = [], batterySelections = {}, onBatteryChange }: Props) {
   const upd = (partial: Partial<Scene>) => onChange({ ...scene, ...partial });
   const scrollBodyRef = useRef<HTMLDivElement>(null);
 
@@ -1771,21 +1796,48 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
             カメラを追加してください
           </p>
         )}
-        {scene.cameras.map(cam => (
-          <CameraCard
-            key={cam.id}
-            cam={cam}
-            allMonitors={scene.monitors}
-            onChange={c => upd({ cameras: scene.cameras.map(x => x.id === cam.id ? c : x) })}
-            onRemove={() => removeCamera(cam.id)}
-            onSetOutput={(portIdx, portType, monId, monPortIdx) =>
-              handleSetCameraOutput(cam.id, portIdx, portType, monId, monPortIdx)
-            }
-            highlighted={highlightedEntityId === cam.id}
-            usedHandles={usedHandles}
-            edges={edges}
-          />
-        ))}
+        {scene.cameras.map(cam => {
+          const camSpec = DB[cam.model as EquipmentModelId]?.richSpec;
+          const camWatts = camSpec?.powerConsumption !== undefined ? camSpec.powerConsumption : null;
+          const onboardMons = scene.monitors.filter(m =>
+            m.role === "onboard" &&
+            (m.cameraId === cam.id || (!m.cameraId && scene.cameras.length === 1))
+          );
+          const txSets = scene.wirelessSets.filter(ws => ws.sourceId === cam.id);
+          const camBatteryBreakdown: BatteryBreakdownItem[] = [
+            { label: DB[cam.model as EquipmentModelId]?.name ?? cam.model, watts: camWatts },
+            ...onboardMons.map(m => ({
+              label: DB[m.model as EquipmentModelId]?.name ?? m.model,
+              watts: DB[m.model as EquipmentModelId]?.richSpec?.powerConsumption ?? null,
+            })),
+            ...txSets.map(ws => {
+              const txId = ws.txModel ?? "wireless_tx";
+              return {
+                label: DB[txId as EquipmentModelId]?.name ?? txId,
+                watts: DB[txId as EquipmentModelId]?.richSpec?.powerConsumption ?? null,
+              };
+            }),
+          ];
+          const camBatterySel = batterySelections[cam.id] ?? DEFAULT_BATTERY;
+          return (
+            <CameraCard
+              key={cam.id}
+              cam={cam}
+              allMonitors={scene.monitors}
+              onChange={c => upd({ cameras: scene.cameras.map(x => x.id === cam.id ? c : x) })}
+              onRemove={() => removeCamera(cam.id)}
+              onSetOutput={(portIdx, portType, monId, monPortIdx) =>
+                handleSetCameraOutput(cam.id, portIdx, portType, monId, monPortIdx)
+              }
+              highlighted={highlightedEntityId === cam.id}
+              usedHandles={usedHandles}
+              edges={edges}
+              batteryBreakdown={camBatteryBreakdown}
+              batterySelection={camBatterySel}
+              onBatteryChange={(bId, cnt) => onBatteryChange?.(cam.id, bId, cnt)}
+            />
+          );
+        })}
 
         {/* MONITORS */}
         <SecHdr label="MONITORS" count={scene.monitors.length} onAdd={openAddMonitor} addLabel="追加" />
@@ -1794,33 +1846,44 @@ export function ScenePanel({ scene, onChange, onResetLayout, highlightedEntityId
             モニターを追加してください
           </p>
         )}
-        {scene.monitors.map(mon => (
-          <MonitorCard
-            key={mon.id}
-            mon={mon}
-            cameras={scene.cameras}
-            onChange={m => upd({ monitors: scene.monitors.map(x => x.id === mon.id ? m : x) })}
-            onRemove={() => removeMonitor(mon.id)}
-            highlighted={highlightedEntityId === mon.id}
-            connectionInfo={getMonitorConnectionInfo(mon, scene, edges)}
-            allRxUnits={scene.wirelessSets.flatMap(ws => ws.rxUnits)}
-            allMonitors={scene.monitors}
-            allWirelessSets={scene.wirelessSets}
-            allConverters={scene.converters ?? []}
-            onConnect={(srcId, srcPortIdx, cableType, tgtPortIdx) =>
-              upd({
-                monitors: scene.monitors.map(m =>
-                  m.id === mon.id
-                    ? { ...m, sourceId: srcId, sourcePortIdx: srcPortIdx, cableType, targetPortIdx: tgtPortIdx }
-                    : m
-                ),
-              })
-            }
-            onConnectOut={makeConnectOut(mon.id)}
-            onDisconnectDest={makeDisconnectDest(mon.id)}
-            usedHandles={usedHandles}
-          />
-        ))}
+        {scene.monitors.map(mon => {
+          const monSpec = DB[mon.model as EquipmentModelId]?.richSpec;
+          const monWatts = monSpec?.powerConsumption !== undefined ? monSpec.powerConsumption : null;
+          const monBatteryBreakdown: BatteryBreakdownItem[] = [
+            { label: DB[mon.model as EquipmentModelId]?.name ?? mon.model, watts: monWatts },
+          ];
+          const monBatterySel = batterySelections[mon.id] ?? DEFAULT_BATTERY;
+          return (
+            <MonitorCard
+              key={mon.id}
+              mon={mon}
+              cameras={scene.cameras}
+              onChange={m => upd({ monitors: scene.monitors.map(x => x.id === mon.id ? m : x) })}
+              onRemove={() => removeMonitor(mon.id)}
+              highlighted={highlightedEntityId === mon.id}
+              connectionInfo={getMonitorConnectionInfo(mon, scene, edges)}
+              allRxUnits={scene.wirelessSets.flatMap(ws => ws.rxUnits)}
+              allMonitors={scene.monitors}
+              allWirelessSets={scene.wirelessSets}
+              allConverters={scene.converters ?? []}
+              onConnect={(srcId, srcPortIdx, cableType, tgtPortIdx) =>
+                upd({
+                  monitors: scene.monitors.map(m =>
+                    m.id === mon.id
+                      ? { ...m, sourceId: srcId, sourcePortIdx: srcPortIdx, cableType, targetPortIdx: tgtPortIdx }
+                      : m
+                  ),
+                })
+              }
+              onConnectOut={makeConnectOut(mon.id)}
+              onDisconnectDest={makeDisconnectDest(mon.id)}
+              usedHandles={usedHandles}
+              batteryBreakdown={monBatteryBreakdown}
+              batterySelection={monBatterySel}
+              onBatteryChange={(bId, cnt) => onBatteryChange?.(mon.id, bId, cnt)}
+            />
+          );
+        })}
 
         {/* WIRELESS */}
         <SecHdr label="WIRELESS" count={scene.wirelessSets.length} onAdd={openAddWireless} addLabel="追加" />

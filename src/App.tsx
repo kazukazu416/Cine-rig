@@ -17,6 +17,7 @@ import { ProjectLibrary, NewProjectModal, saveProject } from "./ProjectPanel";
 import { InfoPanel } from "./InfoPanel";
 import { Modal } from "./Modal";
 import type { Scene, Project, SceneMonitorRole } from "./types";
+import type { BatterySelection } from "./BatterySection";
 import { CABLE_COLORS, CABLE_TYPES, SCENE_ROLE_LABELS } from "./types";
 import { DB, type EquipmentModelId } from "./equipmentDB";
 
@@ -97,6 +98,12 @@ export default function App() {
   const [editingName,    setEditingName]    = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const [lastSavedScene, setLastSavedScene] = useState<Scene>(INITIAL_SCENE);
+
+  const [batterySelections, setBatterySelections] = useState<Record<string, BatterySelection>>({});
+
+  const handleBatteryChange = useCallback((entityId: string, batteryId: string, count: number) => {
+    setBatterySelections(prev => ({ ...prev, [entityId]: { batteryId, count } }));
+  }, []);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropMonitorPending, setDropMonitorPending] = useState<{ modelId: string; pos: { x: number; y: number } } | null>(null);
@@ -644,7 +651,7 @@ export default function App() {
         </div>
 
         {/* Bottom info panel */}
-        <InfoPanel edges={rfEdges} scene={scene} nodes={rfNodes} />
+        <InfoPanel edges={rfEdges} scene={scene} nodes={rfNodes} batterySelections={batterySelections} />
         </div>
 
         {/* Right: Scene Panel */}
@@ -654,6 +661,8 @@ export default function App() {
           onResetLayout={handleResetLayout}
           highlightedEntityId={selectedNodeEntityId}
           edges={rfEdges}
+          batterySelections={batterySelections}
+          onBatteryChange={handleBatteryChange}
         />
       </div>
 
