@@ -1,3 +1,28 @@
+## 2026-05-20 (18)
+
+### ランディングページ作成
+
+**対応ファイル:** src/LandingPage.tsx（新規）, src/main.tsx, vite.config.ts
+
+CineRig のランディングページ（/）を実装。
+
+**構成:**
+- `/` → LandingPage（LP）
+- `/app` → App本体（従来通り）
+- `main.tsx` で `window.location.pathname` によるシンプルルーティング
+- `vite.config.ts` に `historyApiFallback: true` 追加
+
+**LP構成:**
+1. ヒーローセクション（配線図SVGイラスト背景）
+2. 課題セクション（Before）
+3. 解決セクション（After）
+4. 機能紹介カード 3枚（配線図生成・バッテリー計算・案件管理）
+5. CTAセクション + フッター
+
+**デザイン:** Design.md準拠（#005BA6 / #FAFAFA / Apple風フォント）
+
+---
+
 ## 2026-05-20 (17)
 
 ### 存在しない機材の削除・DB整合性確認
