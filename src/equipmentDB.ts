@@ -230,8 +230,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: 9, batteryMount: "internal",
-      notes: "Full-size HDMI A. 4K 4:2:2 10-bit at up to 60fps. No SDI. 消費電力 約9W 推測値（a7S IIIの実測値7.3Wを基に33MPセンサー分を加算）",
+      powerConsumption: 6, batteryMount: "internal",
+      notes: "Full-size HDMI A. 4K 4:2:2 10-bit at up to 60fps. No SDI. 消費電力 動画撮影時 約5.6-5.7W → 6W (Source: helpguide.sony.net α7 IV – 動画撮影時電力消費)",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -612,8 +612,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: 14, batteryMount: "internal",
-      notes: "Full-size HDMI 2.0. ND filters built-in. Up to 1080p60 monitoring output. No SDI. 消費電力 約14W 推測値（6K G2の12Wに内蔵NDフィルター分を加算）",
+      powerConsumption: 16, batteryMount: "internal",
+      notes: "Full-size HDMI 2.0. ND filters built-in. Up to 1080p60 monitoring output. No SDI. 消費電力 スタンバイ約16W・録画時最大26W（推測値、BMDフォーラム実測情報より）",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -852,8 +852,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "WIRELESS", count: 1 },
       ],
-      powerConsumption: 8, batteryMount: null,
-      notes: "Older Bolt 500 XT generation. 500ft range. 消費電力 約8W 推測値（旧Bolt 500 TX実測7.3Wより推定）",
+      powerConsumption: 7.3, batteryMount: null,
+      notes: "Older Bolt 500 XT generation. 500ft range. 消費電力 公称7.3W (Source: cine2481.com/teradek-bolt-500-xt-detail – Nominal Power Consumption: 7.3W)",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -874,8 +874,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G", count: 2 },
         { type: "HDMI", standard: null,  count: 1 },
       ],
-      powerConsumption: 7, batteryMount: null,
-      notes: "Dual 3G-SDI outputs on RX. 消費電力 約7W 推測値（旧世代Bolt 500 RX、TXより若干低めと推定）",
+      powerConsumption: 9, batteryMount: null,
+      notes: "Dual 3G-SDI outputs on RX. 消費電力 公称9W (Source: cine2481.com/teradek-bolt-500-xt-detail – Nominal Power Consumption: 9W / RX > TX due to receive/decode processing)",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -1157,7 +1157,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: 12, batteryMount: "Sony NP-F",
-      notes: "Smart 5 series. 1000nit. PageOS 5. 消費電力 約12W (Source: SmallHD Indie 5 product page – edge-lit design 12W)",
+      notes: "Smart 5 series. 1000nit. PageOS 5. 消費電力 約12W (Source: avgear.shop/smallhd-indie-5-monitor confirmed 12W / SmallHD Indie 5 product page)",
     },
     ports: [
       { type: "SDI",  direction: "in" },

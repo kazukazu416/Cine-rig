@@ -1,3 +1,24 @@
+## 2026-05-20 (14)
+
+### 二次ソース調査による powerConsumption 追加修正
+
+**対応ファイル:** src/equipmentDB.ts
+
+YouTube・フォーラム・レンタルハウス等の二次ソースで不明13件を調査し、4件を修正。
+
+**修正内容:**
+| 機材 | 旧値 | 新値 | 根拠 |
+|------|------|------|------|
+| Teradek Bolt 500 XT RX | 7W推測 | 9W | cine2481.com 公称9W（TX 7.3Wより高い、受信デコード処理のため） |
+| Sony α7 IV | 9W推測 | 6W | Sony公式ヘルプガイド 動画撮影時 5.6-5.7W |
+| Blackmagic BMPCC 6K Pro | 14W推測 | 16W | BMDフォーラム実測：スタンバイ16W・録画時最大26W |
+| SmallHD Indie 5 | 12W（ソース不明） | 12W（変更なし） | avgear.shopにて12W確認済みとしてnotes更新 |
+
+**引き続き公式非公開の機材（null維持）:**
+SmallHD Cine7/5/Ultra7/5/10、Atomos Shogun Ultra、Decimator DMON-16S、BM Cinema Camera 6K
+
+---
+
 ## 2026-05-20 (13)
 
 ### spec-verifier による powerConsumption 多ソース検証・修正
