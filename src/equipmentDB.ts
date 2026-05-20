@@ -1546,32 +1546,6 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
     ],
   },
 
-  // ── Monitors – FSI ──────────────────────────────────────────────────────
-
-  fsi_dm240w: {
-    name: "FSI DM240W",
-    type: "monitor",
-    spec: '24" reference / SDI+HDMI in · SDI loop out',
-    richSpec: {
-      manufacturer: "FSI", model: "DM240W", category: "monitor",
-      size: 24, resolution: "1920x1200", brightness: null, hdr: null, recorder: false,
-      inputs: [
-        { type: "SDI",  standard: "3G", count: 1 },
-        { type: "HDMI", standard: null,  count: 1 },
-      ],
-      outputs: [
-        { type: "SDI",  standard: "3G", count: 1, loopThrough: true },
-      ],
-      powerConsumption: 29, batteryMount: null,
-      notes: "FSI reference production monitor. SDI loop-through only. 消費電力 29W @ 100nit、最大48W (Source: flandersscientific.com DM240W tech specs)",
-    },
-    ports: [
-      { type: "SDI",  direction: "in" },
-      { type: "HDMI", direction: "in" },
-      { type: "SDI",  direction: "out" },
-    ],
-  },
-
   // ── Recorders ────────────────────────────────────────────────────────────
 
   atomos_shogun_connect: {
@@ -2047,8 +2021,6 @@ export const MONITOR_MODELS: MonitorModelId[] = [
   "sony_pvm_a170",   "sony_pvm_a250",
   "sony_lmd_a170",   "sony_lmd_a220",   "sony_lmd_a240",
   "sony_bvm_hx310",
-  // FSI
-  "fsi_dm240w",
 ];
 
 // ── Instantiators ─────────────────────────────────────────────────────────

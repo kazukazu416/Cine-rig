@@ -53,9 +53,7 @@ export type MonitorModelId =
   // Sony
   | "sony_pvm_a170"   | "sony_pvm_a250"
   | "sony_lmd_a170"   | "sony_lmd_a220" | "sony_lmd_a240"
-  | "sony_bvm_hx310"
-  // FSI
-  | "fsi_dm240w";
+  | "sony_bvm_hx310";
 
 export type MonitorRole = "focus" | "onboard" | "director" | "client" | "custom";
 
