@@ -631,8 +631,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
-      powerConsumption: 20, batteryMount: "internal",
-      notes: "Full-size HDMI 2.0. Full-frame sensor with L-mount. Up to 1080p60 monitoring. No SDI. 消費電力 約20W 推測値（フルフレームセンサー + 内蔵ディスプレイ分を推定）",
+      powerConsumption: 30, batteryMount: "internal",
+      notes: "Full-size HDMI 2.0. Full-frame sensor with L-mount. Up to 1080p60 monitoring. No SDI. 消費電力 30W (Source: filmtools.com BM Cinema Camera 6K specs / BMD付属アダプター30W電源と整合)",
     },
     ports: [
       { type: "HDMI", direction: "out" },
@@ -982,10 +982,10 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
   smallhd_cine7: {
     name: "SmallHD Cine 7",
     type: "monitor",
-    spec: '7" 2000nit / 2×3G-SDI+HDMI 2.0 in·out',
+    spec: '7" 1800nit / 2×3G-SDI+HDMI 2.0 in·out',
     richSpec: {
       manufacturer: "SmallHD", model: "Cine 7", category: "monitor",
-      size: 7, resolution: "1920x1200", brightness: 2000, hdr: true, recorder: false,
+      size: 7, resolution: "1920x1200", brightness: 1800, hdr: true, recorder: false,
       inputs: [
         { type: "SDI",  standard: "3G",  count: 2 },
         { type: "HDMI", standard: "2.0", count: 1 },
@@ -1009,10 +1009,10 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
   smallhd_cine5: {
     name: "SmallHD Cine 5",
     type: "monitor",
-    spec: '5" / 2×3G-SDI+HDMI 2.0 in·out',
+    spec: '5" 2000nit / 2×3G-SDI+HDMI 2.0 in·out',
     richSpec: {
       manufacturer: "SmallHD", model: "Cine 5", category: "monitor",
-      size: 5, resolution: "1920x1080", brightness: null, hdr: true, recorder: false,
+      size: 5, resolution: "1920x1080", brightness: 2000, hdr: true, recorder: false,
       inputs: [
         { type: "SDI",  standard: "3G",  count: 2 },
         { type: "HDMI", standard: "2.0", count: 1 },
@@ -1063,10 +1063,10 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
   smallhd_ultra5: {
     name: "SmallHD Ultra 5",
     type: "monitor",
-    spec: '5" / 2×3G-SDI+HDMI 2.0 in·out',
+    spec: '5" 3000nit / 2×3G-SDI+HDMI 2.0 in·out',
     richSpec: {
       manufacturer: "SmallHD", model: "Ultra 5", category: "monitor",
-      size: 5, resolution: "1920x1080", brightness: null, hdr: null, recorder: false,
+      size: 5, resolution: "1920x1080", brightness: 3000, hdr: null, recorder: false,
       inputs: [
         { type: "SDI",  standard: "3G",  count: 2 },
         { type: "HDMI", standard: "2.0", count: 1 },
@@ -1334,7 +1334,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: 10, batteryMount: "Sony NP-F",
-      notes: "No built-in SDI. SDI via optional Atomos Connect module. Records ProRes RAW/ProRes/H.265. 消費電力 約10W 推測値（Ninja V/V+の7Wに8K処理・AtomOS11分を加算。USB-C PD 30W要求）",
+      notes: "No built-in SDI. SDI via optional Atomos Connect module. Records ProRes RAW/ProRes/H.265. 消費電力 公式10-22W (Source: atomos.com/tech-specs/ninja-ultra/ – Operating Power: 10-22W / USB-C PD 45W以上要求)",
     },
     ports: [
       { type: "HDMI", direction: "in" },

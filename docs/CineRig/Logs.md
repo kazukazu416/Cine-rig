@@ -1,3 +1,25 @@
+## 2026-05-20 (15)
+
+### 日本レンタル機材サイト調査による spec 修正
+
+**対応ファイル:** src/equipmentDB.ts
+
+日本レンタル機材屋・国内販売サイト・公式スペックPDFを複数参照し、残9件中5件の誤りを修正。
+
+**修正内容:**
+| 機材 | フィールド | 旧値 | 新値 | 根拠 |
+|------|-----------|------|------|------|
+| SmallHD Cine 7 | brightness | 2000nit | **1800nit** | 公式・Newsshooter・Markertek 全ソースが1800nit |
+| SmallHD Cine 5 | brightness | null | **2000nit** | smallhd.com公式・Newsshooterレビュー確認 |
+| SmallHD Ultra 5 | brightness | null | **3000nit** | smallhd.com公式・dittools.eu・Sweetwater確認 |
+| BM Cinema Camera 6K | powerConsumption | 20W推測 | **30W** | filmtools.com スペック欄 "Power Consumption: 30W" / BMD付属アダプター30W電源と整合 |
+| Atomos Ninja Ultra | notes | "30W要求・推測値" | 公式10-22W、USB-C PD 45W以上 | atomos.com/tech-specs/ninja-ultra/ 公式確認 |
+
+**引き続き消費電力公式非公開（推測値維持）:**
+SmallHD Cine 7/5（消費電力）、Ultra 7/5/10、Atomos Shogun Ultra、Decimator DMON-16S
+
+---
+
 ## 2026-05-20 (14)
 
 ### 二次ソース調査による powerConsumption 追加修正
