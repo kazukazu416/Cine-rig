@@ -1265,8 +1265,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 1, loopThrough: true },
         { type: "HDMI", standard: "2.0",  count: 1, cleanFeed: true },
       ],
-      powerConsumption: 35, batteryMount: "V-mount",
-      notes: "AtomOS 11. RAW recording up to 8K30/6K60/4K120. Optional NDI TX upgrade. 消費電力 約35W 推測値（Shogun 7の33Wに2000nit高輝度・8K処理分を加算。USB-C PD最低65W要求）",
+      powerConsumption: 25, batteryMount: "V-mount",
+      notes: "AtomOS 11. RAW recording up to 8K30/6K60/4K120. Optional NDI TX upgrade. 消費電力 約25W（atomos-japan.com 駆動時間から逆算: 5200mAh→1.5h / 7800mAh→2.2h @4Kp60）",
     },
     ports: [
       { type: "SDI",  direction: "in" },

@@ -1,3 +1,22 @@
+## 2026-05-20 (16)
+
+### 日本サイト調査 続き・Shogun Ultra 消費電力修正
+
+**対応ファイル:** src/equipmentDB.ts
+
+raid-japan.com / system5.jp / atomos-japan.com 等を調査。
+
+**修正内容:**
+| 機材 | 旧値 | 新値 | 根拠 |
+|------|------|------|------|
+| Atomos Shogun Ultra | 35W推測 | **25W** | atomos-japan.com バッテリー駆動時間から逆算（5200mAh→1.5h / 7800mAh→2.2h @4Kp60） |
+
+**引き続き消費電力（W）非公開の機材（推測値維持）:**
+- SmallHD Cine 7/5/Ultra 7/5/10 — SmallHD は消費電力ワット数を非公開（電流定格のみ）
+- Decimator DMON-16S — 公式マニュアルPDFはSSL証明書エラー、他ソースにも記載なし
+
+---
+
 ## 2026-05-20 (15)
 
 ### 日本レンタル機材サイト調査による spec 修正
