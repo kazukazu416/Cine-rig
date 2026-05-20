@@ -1,3 +1,31 @@
+## 2026-05-20 (13)
+
+### spec-verifier による powerConsumption 多ソース検証・修正
+
+**対応ファイル:** src/equipmentDB.ts
+
+各機材を複数リソースで再検証（公式サイト・B&H・Filmtools・ManualsLib・Newsshooter等）し、8件の誤りを修正。
+
+**修正内容:**
+| 機材 | 旧値 | 新値 | 根拠 |
+|------|------|------|------|
+| SmallHD 702 Touch | 11W推測 | 17W | Filmtools/Newsshooter – Indie 7と同等の17.3W最大 |
+| Atomos Ninja V | 7W | 10W | 公式典型10W・最大19W（7Wは低すぎ） |
+| Atomos Ninja V+ | 7W | 10W | 同上 |
+| Atomos Shogun Connect | 15W推測 | 33W | Hot Rod Cameras仕様書 33W最大 |
+| Teradek Bolt 6 LT TX（750/1500） | 13W推測 | 9W | ManualsLib公式マニュアルp.126 TX=9W公称 |
+| Accsoon CineView SE TX | 5W推測 | 4.5W | accsoon.com公式製品ページ典型4.5W |
+| Accsoon CineView SE RX | 3W推測 | 3.5W | accsoon.com公式製品ページ典型3.5W |
+
+**SmallHD Cine 7（18W）の注記修正:**
+- 18Wの出典が「Cine 7 500 TX版（Bolt 500内蔵）の最大値」であることを明記
+- 標準Cine 7の公式消費電力は非公開のため推測値として扱う
+
+**確認不可のまま維持（公式非公開）:**
+SmallHD Cine5/Ultra系, Atomos Shogun Ultra, Teradek Bolt 500 XT, Sony a7 IV, BM BMPCC 6K Pro, BM Cinema Camera 6K, Decimator DMON-16S
+
+---
+
 ## 2026-05-20 (12)
 
 ### equipmentDB.ts 消費電力 全43件調査・入力完了

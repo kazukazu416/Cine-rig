@@ -674,8 +674,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
-      powerConsumption: 13, batteryMount: null,
-      notes: "Max 1080p60 over SDI, 4K30 over HDMI. 750ft (230m) range. 消費電力 約13W 推測値（Bolt 6 LT RX実測11Wより、TX分を加算推定）",
+      powerConsumption: 9, batteryMount: null,
+      notes: "Max 1080p60 over SDI, 4K30 over HDMI. 750ft (230m) range. 消費電力 公称9W (Source: manualslib.com Teradek Bolt 6 Series マニュアル p.126)",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -717,8 +717,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1 },
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
-      powerConsumption: 13, batteryMount: null,
-      notes: "Same ports as LT 750. 1500ft (450m) range. 消費電力 約13W 推測値（Bolt 6 LT RX実測11Wより、TX分を加算推定）",
+      powerConsumption: 9, batteryMount: null,
+      notes: "Same ports as LT 750. 1500ft (450m) range. 消費電力 公称9W (Source: manualslib.com Teradek Bolt 6 Series マニュアル p.126 – LT 750 TXと同一スペック)",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -945,8 +945,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: null,  count: 1 },
       ],
       outputs: [{ type: "WIRELESS", count: 1 }],
-      powerConsumption: 5, batteryMount: "Sony NP-F",
-      notes: "Standard: 1080p60 SDI. 4K SE variant supports 4K30 over HDMI. 1200ft (350m). 消費電力 約5W 推測値（NP-F970で12時間稼働の公称値から逆算 約4.5W平均）",
+      powerConsumption: 4.5, batteryMount: "Sony NP-F",
+      notes: "Standard: 1080p60 SDI. 4K SE variant supports 4K30 over HDMI. 1200ft (350m). 消費電力 典型4.5W (Source: accsoon.com/cineview-se/ 公式製品ページ)",
     },
     ports: [
       { type: "SDI",      direction: "in" },
@@ -967,8 +967,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G", count: 1 },
         { type: "HDMI", standard: null,  count: 1 },
       ],
-      powerConsumption: 3, batteryMount: "Sony NP-F",
-      notes: "Cross-conversion: TX SDI→RX HDMI, TX HDMI→RX SDI. 消費電力 約3W 推測値（RXはTXより低消費電力と推定）",
+      powerConsumption: 3.5, batteryMount: "Sony NP-F",
+      notes: "Cross-conversion: TX SDI→RX HDMI, TX HDMI→RX SDI. 消費電力 典型3.5W (Source: accsoon.com/cineview-se/ 公式製品ページ)",
     },
     ports: [
       { type: "WIRELESS", direction: "in" },
@@ -995,7 +995,7 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
       powerConsumption: 18, batteryMount: "Sony NP-F",
-      notes: "SDI 1 = input; SDI 2 = input + loop-through output. HDMI 2.0 loop. Optional V/Gold plates. 消費電力 約18W最大 (Source: newsshooter.com/2019/05/02/smallhd-cine-7-500-tx-monitor-review/ SmallHD仕様表より18.2W max)",
+      notes: "SDI 1 = input; SDI 2 = input + loop-through output. HDMI 2.0 loop. Optional V/Gold plates. 消費電力 18W（出典: Cine 7 500 TX版の最大値18.2W。標準Cine 7の公式値は非公開）推測値",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1183,8 +1183,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "3G", count: 1 },
         { type: "HDMI", standard: null,  count: 1, loopThrough: true },
       ],
-      powerConsumption: 11, batteryMount: "Sony NP-F",
-      notes: "700nit. SDI↔HDMI cross-conversion. Older model. 消費電力 約11W 推測値（702 Bright確認値11Wと同世代・同サイズの機種）",
+      powerConsumption: 17, batteryMount: "Sony NP-F",
+      notes: "700nit. SDI↔HDMI cross-conversion. Older model. 消費電力 最大17.3W (Source: filmtools.com / newsshooter.com – Indie 7と同等の消費電力)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
@@ -1289,8 +1289,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
-      powerConsumption: 7, batteryMount: "Sony NP-F",
-      notes: "No built-in SDI. SDI via optional AtomX SDI module. Records ProRes/DNxHR. 消費電力 約7W (Source: atomos.com/products/ninja-v/specifications)",
+      powerConsumption: 10, batteryMount: "Sony NP-F",
+      notes: "No built-in SDI. SDI via optional AtomX SDI module. Records ProRes/DNxHR. 消費電力 典型10W・最大19W (Source: atomos.com/products/ninja-v/specifications / dvxuser.com実測)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1311,8 +1311,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
       outputs: [
         { type: "HDMI", standard: "2.0", count: 1, loopThrough: true },
       ],
-      powerConsumption: 7, batteryMount: "Sony NP-F",
-      notes: "No built-in SDI. SDI via optional AtomX SDI module. Supports RAW over HDMI. 消費電力 約7W (Source: atomos.com/products/ninja-v-plus/specifications)",
+      powerConsumption: 10, batteryMount: "Sony NP-F",
+      notes: "No built-in SDI. SDI via optional AtomX SDI module. Supports RAW over HDMI. 消費電力 典型10W・最大19W (Source: atomos.com/products/ninja-v-plus/specifications – V+はVと同等の消費電力)",
     },
     ports: [
       { type: "HDMI", direction: "in" },
@@ -1589,8 +1589,8 @@ export const DB: Record<EquipmentModelId, EquipmentTemplate> = {
         { type: "SDI",  standard: "12G", count: 1 },
         { type: "HDMI", standard: "2.0",  count: 1 },
       ],
-      powerConsumption: 15, batteryMount: null,
-      notes: "No integrated display. Records to SSD via USB-C. Ethernet/Wi-Fi streaming. 消費電力 約15W 推測値（ディスプレイなし録画+ストリーミング機能から推定）",
+      powerConsumption: 33, batteryMount: null,
+      notes: "No integrated display. Records to SSD via USB-C. Ethernet/Wi-Fi streaming. 消費電力 最大33W (Source: hotrodcameras.com Shogun Connect specs – Shogun 7と同等の33W最大)",
     },
     ports: [
       { type: "SDI",  direction: "in" },
