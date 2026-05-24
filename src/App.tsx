@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { exportPdf } from "./exportPdf";
 import {
   ReactFlow, Background, Controls, MiniMap,
   useNodesState, useEdgesState, addEdge, useReactFlow,
@@ -100,10 +101,29 @@ export default function App() {
   const [lastSavedScene, setLastSavedScene] = useState<Scene>(INITIAL_SCENE);
 
   const [batterySelections, setBatterySelections] = useState<Record<string, BatterySelection>>({});
+  const [pdfExporting, setPdfExporting] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleBatteryChange = useCallback((entityId: string, batteryId: string, count: number) => {
     setBatterySelections(prev => ({ ...prev, [entityId]: { batteryId, count } }));
   }, []);
+
+  const handleExportPdf = useCallback(async () => {
+    if (!canvasRef.current || pdfExporting) return;
+    setPdfExporting(true);
+    try {
+      await exportPdf(
+        canvasRef.current,
+        { name: projectMeta.name, author: projectMeta.author, date: projectMeta.date },
+        rfEdges,
+        rfNodes,
+        scene,
+        batterySelections,
+      );
+    } finally {
+      setPdfExporting(false);
+    }
+  }, [canvasRef, pdfExporting, projectMeta, rfEdges, rfNodes, scene, batterySelections]);
 
   const [isDragOver, setIsDragOver] = useState(false);
   const [dropMonitorPending, setDropMonitorPending] = useState<{ modelId: string; pos: { x: number; y: number } } | null>(null);
@@ -538,6 +558,8 @@ export default function App() {
         <TopBarBtn onClick={handleResetLayout} title="配線図を自動レイアウトに戻す">
           ⟳ リセット
         </TopBarBtn>
+
+        <PdfExportBtn onClick={handleExportPdf} loading={pdfExporting} />
       </div>
 
       {/* ── Main area ─────────────────────────────────────────────── */}
@@ -549,6 +571,7 @@ export default function App() {
         {/* Centre: Canvas + Info Panel */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div
+          ref={canvasRef}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -779,6 +802,50 @@ function TopBarBtn({ onClick, title, children }: {
       }}
     >
       {children}
+    </button>
+  );
+}
+
+function PdfExportBtn({ onClick, loading }: { onClick: () => void; loading: boolean }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      title="PDFを書き出す"
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: loading ? "#F5F5F7" : hov ? "#E6F0FA" : "transparent",
+        border: `1px solid ${hov || loading ? "#005BA6" : "rgba(0,0,0,0.10)"}`,
+        color: loading ? "#86868b" : hov ? "#005BA6" : "#6e6e73",
+        borderRadius: 5,
+        padding: "3px 10px",
+        fontSize: 11,
+        fontWeight: 500,
+        cursor: loading ? "not-allowed" : "pointer",
+        transition: "background 0.15s ease-out, color 0.15s ease-out",
+        fontFamily: "inherit",
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        gap: 5,
+      }}
+    >
+      {loading ? (
+        <>
+          <span style={{
+            display: "inline-block",
+            width: 10,
+            height: 10,
+            border: "1.5px solid #86868b",
+            borderTopColor: "transparent",
+            borderRadius: "50%",
+            animation: "spin 0.7s linear infinite",
+          }} />
+          書き出し中...
+        </>
+      ) : "PDF を書き出す"}
     </button>
   );
 }
